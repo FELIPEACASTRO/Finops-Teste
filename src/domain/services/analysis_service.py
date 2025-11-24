@@ -1,235 +1,288 @@
 """
-Domain service for cost optimization analysis.
-Contains business logic for analyzing resources and generating recommendations.
+Domain Service: AnalysisService
+Serviço de domínio para análise de recursos e geração de recomendações
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from decimal import Decimal
 
-from ..entities import (
-    AWSResource, 
-    OptimizationRecommendation, 
-    AnalysisReport,
-    CostData,
-    UsagePattern,
+from ..entities.resource import Resource, UsagePattern
+from ..entities.recommendation import (
+    Recommendation, 
+    ResourceAnalysis, 
+    RecommendationSummary,
+    SavingsEstimate,
+    RecommendationAction,
     Priority,
     RiskLevel
 )
 
 
-class IAnalysisService(ABC):
-    """
-    Interface for analysis services.
+class AnalysisService(ABC):
+    """Interface para serviço de análise"""
     
-    Defines the contract for different analysis implementations
-    (e.g., ML-based, rule-based, AI-based).
-    """
-
     @abstractmethod
-    async def analyze_resource(self, resource: AWSResource) -> OptimizationRecommendation:
-        """Analyze a single resource and generate recommendation."""
+    async def analyze_resource(self, resource: Resource) -> ResourceAnalysis:
+        """Analisa um recurso individual"""
         pass
-
+    
     @abstractmethod
-    async def analyze_resources(self, resources: List[AWSResource]) -> List[OptimizationRecommendation]:
-        """Analyze multiple resources and generate recommendations."""
-        pass
-
-    @abstractmethod
-    async def generate_report(
+    async def generate_recommendation(
         self, 
-        resources: List[AWSResource], 
-        cost_data: CostData,
-        recommendations: List[OptimizationRecommendation]
-    ) -> AnalysisReport:
-        """Generate a complete analysis report."""
+        resource: Resource, 
+        analysis: ResourceAnalysis
+    ) -> Recommendation:
+        """Gera recomendação baseada na análise"""
+        pass
+    
+    @abstractmethod
+    async def analyze_resources_batch(self, resources: List[Resource]) -> List[Recommendation]:
+        """Analisa múltiplos recursos em lote"""
+        pass
+    
+    @abstractmethod
+    async def calculate_summary(self, recommendations: List[Recommendation]) -> RecommendationSummary:
+        """Calcula resumo das recomendações"""
         pass
 
 
-class ResourceAnalyzer:
-    """
-    Domain service for resource analysis.
+class PatternAnalyzer:
+    """Analisador de padrões de uso - Classe utilitária"""
     
-    Contains pure business logic without external dependencies.
-    Follows Single Responsibility Principle.
-    """
-
-    def calculate_usage_pattern(self, resource: AWSResource) -> UsagePattern:
+    @staticmethod
+    def identify_usage_pattern(cpu_values: List[float]) -> UsagePattern:
         """
-        Determine usage pattern based on metrics.
+        Identifica padrão de uso baseado nos valores de CPU
         
-        Time Complexity: O(n) where n is the number of CPU data points
-        Space Complexity: O(1)
+        Algoritmo de análise de padrões:
+        - Steady: Baixa variabilidade (CV < 0.3)
+        - Variable: Alta variabilidade (CV >= 0.3)
+        - Batch: Picos esporádicos
+        - Idle: Uso muito baixo (média < 5%)
+        
+        Complexidade: O(n) onde n é o número de valores
         """
-        cpu_stats = resource.metrics.get_cpu_stats()
-        
-        if not cpu_stats or cpu_stats["mean"] == 0:
+        if not cpu_values:
             return UsagePattern.UNKNOWN
-            
-        mean_cpu = cpu_stats["mean"]
-        max_cpu = cpu_stats["max"]
         
-        # Business rules for pattern detection
-        if mean_cpu < 5:
+        mean_cpu = sum(cpu_values) / len(cpu_values)
+        
+        # Idle: uso muito baixo
+        if mean_cpu < 5.0:
             return UsagePattern.IDLE
-        elif max_cpu - mean_cpu < 10:  # Low variance
-            return UsagePattern.STEADY
-        elif max_cpu - mean_cpu > 50:  # High variance
-            return UsagePattern.VARIABLE
-        else:
+        
+        # Calcular coeficiente de variação
+        if mean_cpu == 0:
+            return UsagePattern.IDLE
+        
+        variance = sum((x - mean_cpu) ** 2 for x in cpu_values) / len(cpu_values)
+        std_dev = variance ** 0.5
+        cv = std_dev / mean_cpu
+        
+        # Detectar padrão batch (picos esporádicos)
+        max_cpu = max(cpu_values)
+        if max_cpu > 80 and mean_cpu < 30:
             return UsagePattern.BATCH
-
-    def calculate_priority(
-        self, 
-        savings_percentage: float, 
-        monthly_savings: Decimal,
-        risk_level: RiskLevel
-    ) -> Priority:
-        """
-        Calculate recommendation priority based on savings and risk.
         
-        Time Complexity: O(1)
-        Space Complexity: O(1)
+        # Steady vs Variable baseado no coeficiente de variação
+        return UsagePattern.STEADY if cv < 0.3 else UsagePattern.VARIABLE
+    
+    @staticmethod
+    def calculate_waste_percentage(cpu_mean: float, cpu_p95: float) -> float:
         """
-        # High savings, low risk = high priority
-        if monthly_savings >= 100 and savings_percentage >= 30 and risk_level == RiskLevel.LOW:
-            return Priority.HIGH
+        Calcula percentual de desperdício baseado na utilização
         
-        # Medium savings or medium risk = medium priority
-        if monthly_savings >= 50 or savings_percentage >= 20:
-            return Priority.MEDIUM
-            
-        return Priority.LOW
-
-    def calculate_risk_level(
-        self, 
-        resource: AWSResource, 
-        recommended_change_percentage: float
-    ) -> RiskLevel:
+        Fórmula: waste = max(0, 100 - cpu_p95)
+        Considera que o P95 representa a utilização real necessária
         """
-        Calculate risk level for a recommendation.
-        
-        Time Complexity: O(1)
-        Space Complexity: O(1)
-        """
-        # Production resources have higher risk
-        if resource.is_production():
-            if recommended_change_percentage > 50:
-                return RiskLevel.HIGH
-            elif recommended_change_percentage > 25:
-                return RiskLevel.MEDIUM
-            else:
-                return RiskLevel.LOW
-        
-        # Non-production resources have lower risk
-        if recommended_change_percentage > 75:
-            return RiskLevel.HIGH
-        elif recommended_change_percentage > 50:
-            return RiskLevel.MEDIUM
-        else:
-            return RiskLevel.LOW
-
-    def calculate_confidence_score(
-        self, 
-        resource: AWSResource, 
-        data_points: int
+        return max(0.0, 100.0 - cpu_p95)
+    
+    @staticmethod
+    def calculate_efficiency_score(
+        cpu_mean: float, 
+        cpu_p95: float, 
+        pattern: UsagePattern
     ) -> float:
         """
-        Calculate confidence score based on data quality.
+        Calcula score de eficiência (0-100)
         
-        Time Complexity: O(1)
-        Space Complexity: O(1)
+        Considera:
+        - Utilização média
+        - Padrão de uso
+        - Desperdício
         """
-        base_confidence = min(data_points / 720, 1.0)  # 720 = 30 days * 24 hours
+        base_score = min(cpu_p95, 100.0)
         
-        # Adjust based on resource age and tags
-        if resource.created_at and resource.tags:
-            age_bonus = 0.1
-            tags_bonus = 0.1 if len(resource.tags) >= 3 else 0.05
-            base_confidence = min(base_confidence + age_bonus + tags_bonus, 1.0)
+        # Ajustes por padrão
+        pattern_multipliers = {
+            UsagePattern.STEADY: 1.0,
+            UsagePattern.VARIABLE: 0.9,
+            UsagePattern.BATCH: 0.8,
+            UsagePattern.IDLE: 0.1,
+            UsagePattern.UNKNOWN: 0.5
+        }
         
-        return round(base_confidence, 2)
+        multiplier = pattern_multipliers.get(pattern, 0.5)
+        return round(base_score * multiplier, 1)
 
 
-class ReportGenerator:
-    """
-    Domain service for generating analysis reports.
+class CostCalculator:
+    """Calculadora de custos - Classe utilitária"""
     
-    Follows Single Responsibility Principle by focusing only on report generation.
-    """
-
-    def __init__(self):
-        self.version = "4.0.0"
-
-    def aggregate_savings(self, recommendations: List[OptimizationRecommendation]) -> Dict[str, Decimal]:
-        """
-        Aggregate total savings from recommendations.
+    # Preços base por hora (us-east-1) - Simplificado para exemplo
+    EC2_PRICING = {
+        't3.nano': 0.0052, 't3.micro': 0.0104, 't3.small': 0.0208,
+        't3.medium': 0.0416, 't3.large': 0.0832, 't3.xlarge': 0.1664,
+        't3a.nano': 0.0047, 't3a.micro': 0.0094, 't3a.small': 0.0188,
+        't3a.medium': 0.0376, 't3a.large': 0.0752, 't3a.xlarge': 0.1504,
+        'm5.large': 0.096, 'm5.xlarge': 0.192, 'm5.2xlarge': 0.384,
+        'c5.large': 0.085, 'c5.xlarge': 0.17, 'c5.2xlarge': 0.34
+    }
+    
+    RDS_PRICING = {
+        'db.t3.micro': 0.017, 'db.t3.small': 0.034, 'db.t3.medium': 0.068,
+        'db.t3.large': 0.136, 'db.t3.xlarge': 0.272,
+        'db.m5.large': 0.192, 'db.m5.xlarge': 0.384, 'db.m5.2xlarge': 0.768
+    }
+    
+    @classmethod
+    def calculate_ec2_monthly_cost(cls, instance_type: str) -> Decimal:
+        """Calcula custo mensal de instância EC2"""
+        hourly_cost = cls.EC2_PRICING.get(instance_type, 0.1)  # Default fallback
+        monthly_cost = hourly_cost * 24 * 30  # 30 dias
+        return Decimal(str(round(monthly_cost, 2)))
+    
+    @classmethod
+    def calculate_rds_monthly_cost(cls, instance_class: str) -> Decimal:
+        """Calcula custo mensal de instância RDS"""
+        hourly_cost = cls.RDS_PRICING.get(instance_class, 0.1)  # Default fallback
+        monthly_cost = hourly_cost * 24 * 30  # 30 dias
+        return Decimal(str(round(monthly_cost, 2)))
+    
+    @classmethod
+    def calculate_savings(
+        cls, 
+        current_cost: Decimal, 
+        new_cost: Decimal
+    ) -> SavingsEstimate:
+        """Calcula estimativa de economia"""
+        monthly_savings = current_cost - new_cost
+        annual_savings = monthly_savings * 12
         
-        Time Complexity: O(n) where n is the number of recommendations
-        Space Complexity: O(1)
-        """
-        total_monthly = sum(rec.monthly_savings_usd for rec in recommendations)
-        total_annual = sum(rec.annual_savings_usd for rec in recommendations)
+        if current_cost > 0:
+            percentage = float(monthly_savings / current_cost * 100)
+        else:
+            percentage = 0.0
         
-        return {
-            "monthly": total_monthly,
-            "annual": total_annual
+        return SavingsEstimate(
+            monthly_usd=monthly_savings,
+            annual_usd=annual_savings,
+            percentage=round(percentage, 1)
+        )
+
+
+class RiskAssessment:
+    """Avaliador de riscos - Classe utilitária"""
+    
+    @staticmethod
+    def assess_risk(
+        resource: Resource,
+        action: RecommendationAction,
+        current_utilization: float,
+        target_utilization: float
+    ) -> RiskLevel:
+        """
+        Avalia nível de risco de uma recomendação
+        
+        Considera:
+        - Tipo de ação
+        - Ambiente (produção = maior risco)
+        - Criticidade
+        - Utilização atual vs target
+        """
+        # Fatores de risco base
+        risk_score = 0
+        
+        # Risco por ação
+        action_risks = {
+            RecommendationAction.DELETE: 10,
+            RecommendationAction.DOWNSIZE: 5,
+            RecommendationAction.MIGRATE: 7,
+            RecommendationAction.UPSIZE: 2,
+            RecommendationAction.OPTIMIZE: 3,
+            RecommendationAction.SCHEDULE: 4,
+            RecommendationAction.NO_CHANGE: 0
         }
-
-    def categorize_recommendations(
-        self, 
-        recommendations: List[OptimizationRecommendation]
-    ) -> Dict[Priority, List[OptimizationRecommendation]]:
+        risk_score += action_risks.get(action, 5)
+        
+        # Risco por ambiente
+        if resource.is_production():
+            risk_score += 5
+        
+        # Risco por criticidade
+        criticality = resource.get_criticality()
+        if criticality == 'high':
+            risk_score += 5
+        elif criticality == 'medium':
+            risk_score += 2
+        
+        # Risco por utilização target
+        if target_utilization > 80:
+            risk_score += 3
+        elif target_utilization > 60:
+            risk_score += 1
+        
+        # Converter score para nível
+        if risk_score <= 5:
+            return RiskLevel.LOW
+        elif risk_score <= 12:
+            return RiskLevel.MEDIUM
+        else:
+            return RiskLevel.HIGH
+    
+    @staticmethod
+    def assess_priority(
+        savings: SavingsEstimate,
+        risk_level: RiskLevel,
+        efficiency_score: float
+    ) -> Priority:
         """
-        Categorize recommendations by priority.
+        Avalia prioridade baseada em economia, risco e eficiência
         
-        Time Complexity: O(n) where n is the number of recommendations
-        Space Complexity: O(n)
+        Matriz de decisão:
+        - Alta economia + Baixo risco = Alta prioridade
+        - Baixa eficiência + Baixo risco = Alta prioridade
+        - Alto risco = Prioridade reduzida
         """
-        categorized = {
-            Priority.HIGH: [],
-            Priority.MEDIUM: [],
-            Priority.LOW: []
-        }
+        priority_score = 0
         
-        for rec in recommendations:
-            categorized[rec.priority].append(rec)
+        # Score por economia mensal
+        if savings.monthly_usd >= 100:
+            priority_score += 3
+        elif savings.monthly_usd >= 50:
+            priority_score += 2
+        elif savings.monthly_usd >= 10:
+            priority_score += 1
         
-        return categorized
-
-    def generate_summary_statistics(
-        self, 
-        recommendations: List[OptimizationRecommendation]
-    ) -> Dict[str, Any]:
-        """
-        Generate summary statistics for the report.
+        # Score por eficiência (quanto menor, maior prioridade)
+        if efficiency_score < 30:
+            priority_score += 3
+        elif efficiency_score < 50:
+            priority_score += 2
+        elif efficiency_score < 70:
+            priority_score += 1
         
-        Time Complexity: O(n) where n is the number of recommendations
-        Space Complexity: O(1)
-        """
-        if not recommendations:
-            return {
-                "total_recommendations": 0,
-                "high_priority": 0,
-                "medium_priority": 0,
-                "low_priority": 0,
-                "average_savings_percentage": 0.0,
-                "total_monthly_savings": 0.0,
-                "total_annual_savings": 0.0
-            }
-
-        categorized = self.categorize_recommendations(recommendations)
-        savings = self.aggregate_savings(recommendations)
+        # Penalidade por risco
+        if risk_level == RiskLevel.HIGH:
+            priority_score -= 2
+        elif risk_level == RiskLevel.MEDIUM:
+            priority_score -= 1
         
-        avg_savings_pct = sum(rec.savings_percentage for rec in recommendations) / len(recommendations)
-        
-        return {
-            "total_recommendations": len(recommendations),
-            "high_priority": len(categorized[Priority.HIGH]),
-            "medium_priority": len(categorized[Priority.MEDIUM]),
-            "low_priority": len(categorized[Priority.LOW]),
-            "average_savings_percentage": round(avg_savings_pct, 2),
-            "total_monthly_savings": float(savings["monthly"]),
-            "total_annual_savings": float(savings["annual"])
-        }
+        # Converter para prioridade
+        if priority_score >= 4:
+            return Priority.HIGH
+        elif priority_score >= 2:
+            return Priority.MEDIUM
+        else:
+            return Priority.LOW
