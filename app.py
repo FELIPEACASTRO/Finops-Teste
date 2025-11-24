@@ -76,8 +76,8 @@ def get_stats():
         'version': '4.0',
         'total_services': get_total_services_count(),
         'categories': len(get_all_categories()),
-        'tests_passing': 23,
-        'code_coverage': '91%',
+        'tests_passing': 386,
+        'code_coverage': '42%',
         'architecture': 'Clean Architecture + DDD',
         'ai_model': 'Amazon Bedrock (Claude 3 Sonnet)',
         'status': 'Production Ready'
