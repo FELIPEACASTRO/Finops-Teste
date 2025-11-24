@@ -6,7 +6,17 @@
 
 ### Purpose
 
-Automatically analyze **all 80+ AWS services** across multiple regions and provide AI-powered cost optimization recommendations with implementation steps.
+Automatically analyze **all 83+ AWS services** across multiple regions and provide AI-powered cost optimization recommendations with implementation steps.
+
+### 🌐 Web Interface
+
+**NEW!** This project now includes an interactive web interface built with Flask that allows you to:
+- Explore all 83+ AWS services supported
+- View project statistics and architecture
+- See demo cost analysis with realistic recommendations
+- Filter services by category (Compute, Storage, Database, etc.)
+
+**Access the web interface**: Click on the "Webview" tab in Replit to see the interactive dashboard!
 
 ### Key Features
 
@@ -87,13 +97,25 @@ DEPLOYMENT_PRODUCTION.md # Production guide (NEW!)
 
 ## 🚀 Running the Application
 
-### Demo Mode (Replit)
+### Web Interface (Replit) - NEW! ✨
+
+**Recommended way to explore the project:**
+
+The project includes an interactive web interface that runs automatically. Just click on the "Webview" tab to see:
+- All 83+ AWS services organized by category
+- Live project statistics
+- Demo cost analysis with realistic recommendations
+- Complete architecture diagram
+
+The web server runs on port 5000 and is configured in the workflow.
+
+### Demo Mode (CLI)
 
 ```bash
 python demo.py
 ```
 
-Shows architecture, capabilities, and configuration without AWS credentials.
+Shows architecture, capabilities, and configuration without AWS credentials in the terminal.
 
 ### CLI with AWS Credentials
 

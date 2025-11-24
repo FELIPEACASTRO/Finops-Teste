@@ -24,3 +24,12 @@ pytest
 pytest-asyncio
 pytest-cov
 pytest-mock
+black
+boto3
+flake8
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
+flask
+flask-cors
