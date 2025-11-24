@@ -179,7 +179,7 @@ class TestCostExplorerIntegration:
         
         forecast = (current_spend / days_elapsed) * days_in_month
         
-        assert forecast == pytest.approx(Decimal('3125.00'), rel=0.01)
+        assert float(forecast) == pytest.approx(3125.00, rel=0.01)
 
 
 class TestBedrockIntegration:

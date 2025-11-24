@@ -28,7 +28,7 @@ class TestCostCalculator:
         
         expected_monthly = Decimal(str(hourly_cost)) * monthly_hours
         
-        assert expected_monthly == pytest.approx(Decimal('6.86'), rel=0.01)
+        assert float(expected_monthly) == pytest.approx(6.86, rel=0.01)
     
     def test_calculate_ec2_hourly_cost_t3a_large(self):
         """Test EC2 t3a.large hourly cost calculation."""
@@ -38,7 +38,7 @@ class TestCostCalculator:
         
         expected_monthly = Decimal(str(hourly_cost)) * monthly_hours
         
-        assert expected_monthly == pytest.approx(Decimal('54.90'), rel=0.01)
+        assert float(expected_monthly) == pytest.approx(54.90, rel=0.01)
     
     def test_calculate_ec2_hourly_cost_m5_xlarge(self):
         """Test EC2 m5.xlarge hourly cost calculation."""
@@ -47,7 +47,7 @@ class TestCostCalculator:
         
         expected_monthly = Decimal(str(hourly_cost)) * monthly_hours
         
-        assert expected_monthly == pytest.approx(Decimal('140.16'), rel=0.01)
+        assert float(expected_monthly) == pytest.approx(140.16, rel=0.01)
     
     def test_calculate_rds_cost_db_t3_medium(self):
         """Test RDS db.t3.medium hourly cost calculation."""
@@ -56,7 +56,7 @@ class TestCostCalculator:
         
         expected_monthly = Decimal(str(hourly_cost)) * monthly_hours
         
-        assert expected_monthly == pytest.approx(Decimal('49.64'), rel=0.01)
+        assert float(expected_monthly) == pytest.approx(49.64, rel=0.01)
     
     def test_calculate_rds_cost_db_r5_xlarge(self):
         """Test RDS db.r5.xlarge hourly cost calculation."""
@@ -65,7 +65,7 @@ class TestCostCalculator:
         
         expected_monthly = Decimal(str(hourly_cost)) * monthly_hours
         
-        assert expected_monthly == pytest.approx(Decimal('350.40'), rel=0.01)
+        assert float(expected_monthly) == pytest.approx(350.40, rel=0.01)
     
     def test_calculate_lambda_cost_per_invocation(self):
         """Test Lambda cost per invocation."""
@@ -196,7 +196,7 @@ class TestCostCalculator:
         ec2_percentage = (cost_by_service['EC2'] / total) * 100
         
         assert total == Decimal('900.00')
-        assert ec2_percentage == pytest.approx(55.56, rel=0.01)
+        assert float(ec2_percentage) == pytest.approx(55.56, rel=0.01)
 
 
 class TestPriorityCalculator:

@@ -79,8 +79,10 @@ class TestCircuitBreakerExtended:
         cb.state = CircuitState.HALF_OPEN
         
         result = cb.call(flaky_func)
-        
         assert result == "success"
+        
+        result2 = cb.call(flaky_func)
+        assert result2 == "success"
         assert cb.state == CircuitState.CLOSED
     
     def test_circuit_breaker_with_different_thresholds(self):
