@@ -1,0 +1,391 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS FinOps Analyzer v4.0 - Complete Clean Architecture Implementation'
+
+Parameters:
+  S3BucketName:
+    Type: String
+    Default: finops-reports-v4
+    Description: S3 bucket name for storing analysis reports
+    
+  EmailFrom:
+    Type: String
+    Description: Verified SES email address for sending notifications
+    
+  EmailTo:
+    Type: String
+    Description: Email addresses to receive notifications (comma-separated)
+    
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-sonnet-20240229-v1:0
+    Description: Amazon Bedrock model ID for analysis
+    
+  HistoricalDays:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    MaxValue: 365
+    Description: Number of days of historical data to analyze
+    
+  ScheduleExpression:
+    Type: String
+    Default: cron(0 8 * * ? *)
+    Description: CloudWatch Events schedule expression (daily at 8 AM UTC)
+    
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [development, staging, production]
+    Description: Environment name
+
+Resources:
+  # S3 Bucket for Reports
+  ReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldReports
+            Status: Enabled
+            ExpirationInDays: 90
+          - Id: TransitionToIA
+            Status: Enabled
+            TransitionInDays: 30
+            StorageClass: STANDARD_IA
+      NotificationConfiguration:
+        CloudWatchConfigurations:
+          - Event: s3:ObjectCreated:*
+            CloudWatchConfiguration:
+              LogGroupName: !Ref ReportsLogGroup
+      Tags:
+        - Key: Application
+          Value: FinOps-Analyzer
+        - Key: Version
+          Value: "4.0"
+        - Key: Environment
+          Value: !Ref Environment
+
+  # CloudWatch Log Group
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${LambdaFunction}'
+      RetentionInDays: 30
+
+  ReportsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: '/aws/s3/finops-reports'
+      RetentionInDays: 30
+
+  # IAM Role for Lambda
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'FinOpsAnalyzer-LambdaRole-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: FinOpsAnalyzerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # EC2 Permissions
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeVolumes
+                  - ec2:DescribeSnapshots
+                  - ec2:DescribeImages
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSubnets
+                Resource: '*'
+              
+              # RDS Permissions
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBInstances
+                  - rds:DescribeDBClusters
+                  - rds:DescribeDBSnapshots
+                  - rds:ListTagsForResource
+                Resource: '*'
+              
+              # ELB Permissions
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeTags
+                Resource: '*'
+              
+              # Lambda Permissions
+              - Effect: Allow
+                Action:
+                  - lambda:ListFunctions
+                  - lambda:GetFunction
+                  - lambda:ListTags
+                Resource: '*'
+              
+              # CloudWatch Permissions
+              - Effect: Allow
+                Action:
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:GetMetricData
+                  - cloudwatch:ListMetrics
+                Resource: '*'
+              
+              # Cost Explorer Permissions
+              - Effect: Allow
+                Action:
+                  - ce:GetCostAndUsage
+                  - ce:GetUsageReport
+                  - ce:GetCostCategories
+                  - ce:GetRightsizingRecommendation
+                  - ce:GetAnomalies
+                Resource: '*'
+              
+              # Bedrock Permissions
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:GetModel
+                Resource: 
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/${BedrockModelId}'
+              
+              # S3 Permissions
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub '${ReportsBucket}/*'
+                  - !Ref ReportsBucket
+              
+              # SES Permissions
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: '*'
+              
+              # CloudWatch Logs
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+
+  # Lambda Function
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'finops-analyzer-v4-${Environment}'
+      Runtime: python3.11
+      Handler: src.interfaces.lambda_handler.lambda_handler
+      Code:
+        ZipFile: |
+          # Placeholder code - will be updated with deployment package
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'body': 'Please update function code with deployment package'
+              }
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 900  # 15 minutes
+      MemorySize: 1024
+      Environment:
+        Variables:
+          AWS_REGION: !Ref AWS::Region
+          S3_BUCKET_NAME: !Ref S3BucketName
+          EMAIL_FROM: !Ref EmailFrom
+          EMAIL_TO: !Ref EmailTo
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          HISTORICAL_DAYS: !Ref HistoricalDays
+          ENVIRONMENT: !Ref Environment
+          LOG_LEVEL: INFO
+          BATCH_SIZE: '10'
+          MAX_CONCURRENT_REQUESTS: '5'
+          REQUEST_TIMEOUT_SECONDS: '300'
+          ENABLE_COST_ANOMALY_DETECTION: 'true'
+          ENABLE_RIGHTSIZING_RECOMMENDATIONS: 'true'
+          ENABLE_DETAILED_METRICS: 'true'
+      Tags:
+        - Key: Application
+          Value: FinOps-Analyzer
+        - Key: Version
+          Value: "4.0"
+        - Key: Environment
+          Value: !Ref Environment
+
+  # CloudWatch Event Rule for Scheduling
+  ScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub 'finops-analyzer-schedule-${Environment}'
+      Description: 'Schedule for FinOps Analyzer execution'
+      ScheduleExpression: !Ref ScheduleExpression
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt LambdaFunction.Arn
+          Id: FinOpsAnalyzerTarget
+          Input: !Sub |
+            {
+              "request_type": "analysis",
+              "regions": ["${AWS::Region}"],
+              "analysis_period_days": ${HistoricalDays},
+              "include_cost_data": true,
+              "save_report": true
+            }
+
+  # Permission for CloudWatch Events to invoke Lambda
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ScheduleRule.Arn
+
+  # CloudWatch Alarms
+  LambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'FinOpsAnalyzer-Errors-${Environment}'
+      AlarmDescription: 'Lambda function errors'
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LambdaFunction
+      TreatMissingData: notBreaching
+
+  LambdaDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'FinOpsAnalyzer-Duration-${Environment}'
+      AlarmDescription: 'Lambda function duration'
+      MetricName: Duration
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 600000  # 10 minutes in milliseconds
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LambdaFunction
+      TreatMissingData: notBreaching
+
+  # SNS Topic for Alerts (Optional)
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub 'finops-analyzer-alerts-${Environment}'
+      DisplayName: 'FinOps Analyzer Alerts'
+
+  # API Gateway for HTTP Access (Optional)
+  ApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub 'finops-analyzer-api-${Environment}'
+      Description: 'REST API for FinOps Analyzer'
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  ApiGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: analyze
+
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref ApiGatewayResource
+      HttpMethod: POST
+      AuthorizationType: AWS_IAM
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations'
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: ApiGatewayMethod
+    Properties:
+      RestApiId: !Ref ApiGateway
+      StageName: !Ref Environment
+
+  ApiGatewayLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub '${ApiGateway}/*/POST/analyze'
+
+Outputs:
+  LambdaFunctionName:
+    Description: 'Name of the Lambda function'
+    Value: !Ref LambdaFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaFunction'
+
+  LambdaFunctionArn:
+    Description: 'ARN of the Lambda function'
+    Value: !GetAtt LambdaFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaFunctionArn'
+
+  S3BucketName:
+    Description: 'Name of the S3 bucket for reports'
+    Value: !Ref ReportsBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-S3Bucket'
+
+  ApiGatewayUrl:
+    Description: 'API Gateway endpoint URL'
+    Value: !Sub 'https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/analyze'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiUrl'
+
+  ScheduleRuleArn:
+    Description: 'ARN of the CloudWatch Events rule'
+    Value: !GetAtt ScheduleRule.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ScheduleRule'
+
+  IAMRoleArn:
+    Description: 'ARN of the Lambda execution role'
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-IAMRole'
