@@ -4,3 +4,36 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+AWS_REGION = "us-east-1"
+S3_BUCKET_NAME = "finops-reports-demo"
+BEDROCK_MODEL_ID = "anthropic.claude-3-sonnet-20240229-v1:0"
+HISTORICAL_DAYS = "30"
+LOG_LEVEL = "INFO"
+ENVIRONMENT = "development"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Demo"
+
+[[workflows.workflow]]
+name = "Demo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python demo.py"
+
+[workflows.workflow.metadata]
+outputType = "console"
