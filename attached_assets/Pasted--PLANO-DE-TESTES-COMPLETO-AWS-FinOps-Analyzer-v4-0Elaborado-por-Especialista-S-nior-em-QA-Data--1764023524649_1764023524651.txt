@@ -1,0 +1,830 @@
+🎯 PLANO DE TESTES COMPLETO - AWS FinOps Analyzer v4.0Elaborado por: Especialista Sênior em QA
+Data: 24 de Novembro de 2025
+Versão: 4.0
+Status: Pronto para Execução📋 ÍNDICE1.Visão Geral2.Estratégia de Testes3.Pirâmide de Testes4.Testes Unitários5.Testes de Integração6.Testes de Sistema7.Testes de Performance8.Testes de Segurança9.Testes de Aceitação (UAT)10.Testes de Regressão11.Testes de Resiliência12.Critérios de Aceitação13.Ambiente de Testes14.Ferramentas e Frameworks15.Cronograma de Execução🎯 VISÃO GERALObjetivoGarantir que a solução AWS FinOps Analyzer v4.0 está 100% funcional, segura, performática e pronta para produção.Escopo•Código: 9.000+ linhas Python•Arquitetura: Clean Architecture (4 camadas)•Serviços AWS: Lambda, S3, Bedrock, CloudWatch, SES, IAM•Recursos Analisados: EC2, RDS, ELB, Lambda, EBSAbordagemPirâmide de Testes com foco em:•70% Testes Unitários•20% Testes de Integração•10% Testes de Sistema/E2E📊 ESTRATÉGIA DE TESTESPrincípios Fundamentais1.Shift-Left Testing - Testar o mais cedo possível2.Test Automation - Automatizar 90%+ dos testes3.Continuous Testing - Testes em CI/CD4.Risk-Based Testing - Priorizar áreas críticas5.Test-Driven Development - TDD quando possívelNíveis de TesteCopiar┌─────────────────────────────────────────┐
+│     E2E / Aceitação (10%)               │  ← Manual + Automatizado
+├─────────────────────────────────────────┤
+│     Integração (20%)                    │  ← Automatizado
+├─────────────────────────────────────────┤
+│     Unitários (70%)                     │  ← Automatizado
+└─────────────────────────────────────────┘
+🔺 PIRÂMIDE DE TESTESDistribuição RecomendadaNívelQuantidadeCoberturaVelocidadeCustoUnitários~500 testes90%+Rápido (<1s)BaixoIntegração~100 testes80%+Médio (1-5s)MédioSistema/E2E~30 testes60%+Lento (10-60s)AltoPerformance~10 testesN/ALento (5-30min)AltoSegurança~20 testesN/AMédio (1-10min)MédioTotal Estimado: ~660 testes🧪 TESTES UNITÁRIOSObjetivoTestar cada função/método isoladamente sem dependências externas.Cobertura Mínima: 90%Escopo1. DOMAIN LAYER (Entities)1.1 AWSResource EntityCopiar# Arquivo: tests/unit/test_resource_entity.py
+
+class TestAWSResourceEntity:
+    """Testes da entidade AWSResource."""
+    
+    # Testes de Criação
+    def test_create_ec2_resource_valid():
+        """Deve criar recurso EC2 válido."""
+        pass
+    
+    def test_create_resource_with_invalid_type():
+        """Deve falhar com tipo inválido."""
+        pass
+    
+    def test_create_resource_without_required_fields():
+        """Deve falhar sem campos obrigatórios."""
+        pass
+    
+    # Testes de Métodos de Negócio
+    def test_is_production_with_production_tag():
+        """Deve retornar True para tag Environment=production."""
+        pass
+    
+    def test_is_production_without_tags():
+        """Deve retornar False sem tags."""
+        pass
+    
+    def test_is_idle_with_zero_metrics():
+        """Deve retornar True com métricas zeradas."""
+        pass
+    
+    def test_is_idle_with_low_cpu():
+        """Deve retornar True com CPU < 5%."""
+        pass
+    
+    def test_is_underutilized_with_cpu_20():
+        """Deve retornar True com CPU 20%."""
+        pass
+    
+    def test_is_underutilized_with_cpu_50():
+        """Deve retornar False com CPU 50%."""
+        pass
+    
+    # Testes de Validação
+    def test_validate_cpu_greater_than_100():
+        """Deve falhar com CPU > 100%."""
+        pass
+    
+    def test_validate_negative_cost():
+        """Deve falhar com custo negativo."""
+        pass
+    
+    # Testes de Edge Cases
+    def test_resource_with_empty_tags():
+        """Deve aceitar tags vazias."""
+        pass
+    
+    def test_resource_with_null_metrics():
+        """Deve aceitar métricas nulas."""
+        pass
+Total Estimado: ~50 testes1.2 Recommendation EntityCopiar# Arquivo: tests/unit/test_recommendation_entity.py
+
+class TestRecommendationEntity:
+    """Testes da entidade Recommendation."""
+    
+    def test_create_downsize_recommendation():
+        """Deve criar recomendação de downsize."""
+        pass
+    
+    def test_create_delete_recommendation():
+        """Deve criar recomendação de deleção."""
+        pass
+    
+    def test_calculate_annual_savings():
+        """Deve calcular economia anual corretamente."""
+        pass
+    
+    def test_priority_high_with_high_savings():
+        """Deve ter prioridade HIGH com economia > $100."""
+        pass
+    
+    def test_priority_low_with_low_savings():
+        """Deve ter prioridade LOW com economia < $20."""
+        pass
+    
+    def test_risk_level_high_for_production():
+        """Deve ter risco HIGH para produção."""
+        pass
+    
+    def test_implementation_steps_not_empty():
+        """Deve ter passos de implementação."""
+        pass
+Total Estimado: ~30 testes1.3 ResourceMetrics EntityCopiar# Arquivo: tests/unit/test_resource_metrics.py
+
+class TestResourceMetrics:
+    """Testes das métricas de recursos."""
+    
+    def test_calculate_cpu_mean():
+        """Deve calcular média de CPU."""
+        pass
+    
+    def test_calculate_cpu_p95():
+        """Deve calcular percentil 95 de CPU."""
+        pass
+    
+    def test_calculate_cpu_p99():
+        """Deve calcular percentil 99 de CPU."""
+        pass
+    
+    def test_calculate_stats_with_empty_data():
+        """Deve retornar zeros com dados vazios."""
+        pass
+    
+    def test_calculate_stats_with_single_value():
+        """Deve calcular com valor único."""
+        pass
+Total Estimado: ~20 testes2. DOMAIN LAYER (Services)2.1 CostCalculator ServiceCopiar# Arquivo: tests/unit/test_cost_calculator.py
+
+class TestCostCalculator:
+    """Testes do serviço de cálculo de custos."""
+    
+    def test_calculate_ec2_cost_t3a_large():
+        """Deve calcular custo EC2 t3a.large."""
+        pass
+    
+    def test_calculate_rds_cost_db_r5_xlarge():
+        """Deve calcular custo RDS db.r5.xlarge."""
+        pass
+    
+    def test_calculate_savings_downsize_50_percent():
+        """Deve calcular economia de 50%."""
+        pass
+    
+    def test_calculate_savings_delete_100_percent():
+        """Deve calcular economia de 100%."""
+        pass
+    
+    def test_calculate_cost_with_invalid_type():
+        """Deve falhar com tipo inválido."""
+        pass
+Total Estimado: ~40 testes2.2 PriorityCalculator ServiceCopiar# Arquivo: tests/unit/test_priority_calculator.py
+
+class TestPriorityCalculator:
+    """Testes do serviço de cálculo de prioridade."""
+    
+    def test_priority_high_with_savings_100_and_low_risk():
+        """Deve retornar HIGH com $100 e risco baixo."""
+        pass
+    
+    def test_priority_medium_with_savings_50():
+        """Deve retornar MEDIUM com $50."""
+        pass
+    
+    def test_priority_low_with_savings_10():
+        """Deve retornar LOW com $10."""
+        pass
+Total Estimado: ~15 testes2.3 RiskCalculator ServiceCopiar# Arquivo: tests/unit/test_risk_calculator.py
+
+class TestRiskCalculator:
+    """Testes do serviço de cálculo de risco."""
+    
+    def test_risk_high_for_production_with_big_change():
+        """Deve retornar HIGH para produção com mudança >50%."""
+        pass
+    
+    def test_risk_low_for_dev_with_small_change():
+        """Deve retornar LOW para dev com mudança <25%."""
+        pass
+Total Estimado: ~10 testes2.4 ReportGenerator ServiceCopiar# Arquivo: tests/unit/test_report_generator.py
+
+class TestReportGenerator:
+    """Testes do gerador de relatórios."""
+    
+    def test_aggregate_savings_multiple_recommendations():
+        """Deve agregar economias de múltiplas recomendações."""
+        pass
+    
+    def test_categorize_by_priority():
+        """Deve categorizar por prioridade."""
+        pass
+    
+    def test_generate_summary_statistics():
+        """Deve gerar estatísticas resumidas."""
+        pass
+Total Estimado: ~20 testes3. APPLICATION LAYER3.1 AnalyzeResourcesUseCaseCopiar# Arquivo: tests/unit/test_analyze_resources_use_case.py
+
+class TestAnalyzeResourcesUseCase:
+    """Testes do caso de uso principal."""
+    
+    @pytest.mark.asyncio
+    async def test_execute_with_valid_command():
+        """Deve executar com comando válido."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_execute_with_invalid_regions():
+        """Deve falhar com regiões inválidas."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_execute_with_empty_resources():
+        """Deve retornar resultado vazio com 0 recursos."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_validate_command_missing_regions():
+        """Deve falhar sem regiões."""
+        pass
+Total Estimado: ~30 testes4. INFRASTRUCTURE LAYER4.1 BedrockClientCopiar# Arquivo: tests/unit/test_bedrock_client.py
+
+class TestBedrockClient:
+    """Testes do cliente Bedrock."""
+    
+    def test_build_prompt_with_resources():
+        """Deve construir prompt com recursos."""
+        pass
+    
+    def test_parse_bedrock_response_valid_json():
+        """Deve parsear JSON válido."""
+        pass
+    
+    def test_parse_bedrock_response_with_markdown():
+        """Deve remover markdown do JSON."""
+        pass
+    
+    def test_parse_bedrock_response_invalid_json():
+        """Deve falhar com JSON inválido."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_analyze_with_timeout():
+        """Deve falhar com timeout."""
+        pass
+Total Estimado: ~25 testes4.2 AWSResourceRepositoryCopiar# Arquivo: tests/unit/test_aws_resource_repository.py
+
+class TestAWSResourceRepository:
+    """Testes do repositório de recursos AWS."""
+    
+    @pytest.mark.asyncio
+    async def test_get_ec2_instances_with_pagination():
+        """Deve paginar instâncias EC2."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_get_rds_instances():
+        """Deve obter instâncias RDS."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_get_resources_with_retry():
+        """Deve fazer retry em caso de falha."""
+        pass
+Total Estimado: ~40 testes4.3 AWSCostRepositoryCopiar# Arquivo: tests/unit/test_aws_cost_repository.py
+
+class TestAWSCostRepository:
+    """Testes do repositório de custos."""
+    
+    @pytest.mark.asyncio
+    async def test_get_cost_by_service():
+        """Deve obter custos por serviço."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_get_cost_with_invalid_period():
+        """Deve falhar com período inválido."""
+        pass
+Total Estimado: ~15 testes4.4 S3ReportRepositoryCopiar# Arquivo: tests/unit/test_s3_report_repository.py
+
+class TestS3ReportRepository:
+    """Testes do repositório S3."""
+    
+    @pytest.mark.asyncio
+    async def test_save_report_json():
+        """Deve salvar relatório JSON."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_save_report_html():
+        """Deve salvar relatório HTML."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_save_report_with_encryption():
+        """Deve salvar com criptografia."""
+        pass
+Total Estimado: ~15 testes5. CORE LAYER5.1 ConfigCopiar# Arquivo: tests/unit/test_config.py
+
+class TestConfig:
+    """Testes de configuração."""
+    
+    def test_load_config_from_env():
+        """Deve carregar config de variáveis de ambiente."""
+        pass
+    
+    def test_config_with_missing_required_var():
+        """Deve falhar sem variável obrigatória."""
+        pass
+    
+    def test_config_with_default_values():
+        """Deve usar valores padrão."""
+        pass
+Total Estimado: ~10 testes5.2 LoggerCopiar# Arquivo: tests/unit/test_logger.py
+
+class TestLogger:
+    """Testes do sistema de logging."""
+    
+    def test_setup_logger():
+        """Deve configurar logger."""
+        pass
+    
+    def test_log_info_message():
+        """Deve logar mensagem INFO."""
+        pass
+    
+    def test_log_error_with_exception():
+        """Deve logar erro com exceção."""
+        pass
+Total Estimado: ~10 testes5.3 ExceptionsCopiar# Arquivo: tests/unit/test_exceptions.py
+
+class TestExceptions:
+    """Testes de exceções customizadas."""
+    
+    def test_raise_resource_not_found():
+        """Deve lançar ResourceNotFound."""
+        pass
+    
+    def test_raise_analysis_failed():
+        """Deve lançar AnalysisFailed."""
+        pass
+Total Estimado: ~10 testes6. INTERFACES LAYER6.1 LambdaHandlerCopiar# Arquivo: tests/unit/test_lambda_handler.py
+
+class TestLambdaHandler:
+    """Testes do handler Lambda."""
+    
+    @pytest.mark.asyncio
+    async def test_handle_analysis_request_valid():
+        """Deve processar request válido."""
+        pass
+    
+    @pytest.mark.asyncio
+    async def test_handle_analysis_request_invalid_event():
+        """Deve falhar com event inválido."""
+        pass
+    
+    def test_lambda_handler_entry_point():
+        """Deve chamar entry point Lambda."""
+        pass
+Total Estimado: ~20 testesRESUMO TESTES UNITÁRIOSCamadaArquivosTestesPrioridadeDomain (Entities)3100🔴 CRÍTICADomain (Services)485🔴 CRÍTICAApplication130🔴 CRÍTICAInfrastructure495🟡 ALTACore330🟡 ALTAInterfaces120🟡 ALTATOTAL16~360-Ferramentas: pytest, pytest-cov, pytest-asyncio, pytest-mock🔗 TESTES DE INTEGRAÇÃOObjetivoTestar integração entre componentes e serviços AWS reais (ou mocks).Cobertura Mínima: 80%Escopo1. INTEGRAÇÃO COM AWS1.1 EC2 IntegrationCopiar# Arquivo: tests/integration/test_ec2_integration.py
+
+class TestEC2Integration:
+    """Testes de integração com EC2."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_list_ec2_instances_real_aws():
+        """Deve listar instâncias EC2 reais."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_get_ec2_metrics_from_cloudwatch():
+        """Deve obter métricas do CloudWatch."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_ec2_with_pagination():
+        """Deve paginar resultados EC2."""
+        pass
+Total Estimado: ~10 testes1.2 RDS IntegrationCopiar# Arquivo: tests/integration/test_rds_integration.py
+
+class TestRDSIntegration:
+    """Testes de integração com RDS."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_list_rds_instances():
+        """Deve listar instâncias RDS."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_get_rds_metrics():
+        """Deve obter métricas RDS."""
+        pass
+Total Estimado: ~8 testes1.3 Cost Explorer IntegrationCopiar# Arquivo: tests/integration/test_cost_explorer_integration.py
+
+class TestCostExplorerIntegration:
+    """Testes de integração com Cost Explorer."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_get_cost_last_30_days():
+        """Deve obter custos dos últimos 30 dias."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_get_cost_by_service():
+        """Deve obter custos por serviço."""
+        pass
+Total Estimado: ~5 testes1.4 Bedrock IntegrationCopiar# Arquivo: tests/integration/test_bedrock_integration.py
+
+class TestBedrockIntegration:
+    """Testes de integração com Bedrock."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_invoke_bedrock_with_real_data():
+        """Deve invocar Bedrock com dados reais."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_bedrock_returns_valid_json():
+        """Deve retornar JSON válido."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_bedrock_with_timeout():
+        """Deve respeitar timeout."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_bedrock_with_large_prompt():
+        """Deve processar prompt grande."""
+        pass
+Total Estimado: ~10 testes1.5 S3 IntegrationCopiar# Arquivo: tests/integration/test_s3_integration.py
+
+class TestS3Integration:
+    """Testes de integração com S3."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_upload_report_to_s3():
+        """Deve fazer upload de relatório."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_s3_with_encryption():
+        """Deve salvar com criptografia."""
+        pass
+Total Estimado: ~5 testes1.6 SES IntegrationCopiar# Arquivo: tests/integration/test_ses_integration.py
+
+class TestSESIntegration:
+    """Testes de integração com SES."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_send_email_report():
+        """Deve enviar relatório por e-mail."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_send_email_with_attachment():
+        """Deve enviar e-mail com anexo."""
+        pass
+Total Estimado: ~5 testes2. INTEGRAÇÃO ENTRE CAMADAS2.1 Full Workflow IntegrationCopiar# Arquivo: tests/integration/test_analysis_workflow.py
+
+class TestAnalysisWorkflow:
+    """Testes do workflow completo."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_full_analysis_workflow():
+        """Deve executar workflow completo."""
+        # 1. Coletar recursos
+        # 2. Coletar custos
+        # 3. Analisar com Bedrock
+        # 4. Gerar relatório
+        # 5. Salvar no S3
+        # 6. Enviar e-mail
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_workflow_with_no_resources():
+        """Deve processar workflow sem recursos."""
+        pass
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_workflow_with_bedrock_failure():
+        """Deve tratar falha do Bedrock."""
+        pass
+Total Estimado: ~10 testes2.2 Repository IntegrationCopiar# Arquivo: tests/integration/test_repository_integration.py
+
+class TestRepositoryIntegration:
+    """Testes de integração entre repositórios."""
+    
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_resource_and_cost_repositories():
+        """Deve integrar recursos e custos."""
+        pass
+Total Estimado: ~5 testesRESUMO TESTES DE INTEGRAÇÃOCategoriaArquivosTestesPrioridadeAWS Services643🔴 CRÍTICAWorkflows215🔴 CRÍTICATOTAL8~58-Ferramentas: pytest, moto (AWS mocks), pytest-asyncio🌐 TESTES DE SISTEMA (E2E)ObjetivoTestar o sistema completo end-to-end em ambiente real ou staging.Cobertura Mínima: 60%Escopo1. CENÁRIOS DE NEGÓCIO1.1 Análise CompletaCopiar# Arquivo: tests/e2e/test_complete_analysis.py
+
+class TestCompleteAnalysis:
+    """Testes E2E de análise completa."""
+    
+    @pytest.mark.e2e
+    @pytest.mark.slow
+    def test_analyze_real_aws_account():
+        """Deve analisar conta AWS real."""
+        # 1. Invocar Lambda
+        # 2. Aguardar execução
+        # 3. Verificar relatório no S3
+        # 4. Verificar e-mail recebido
+        pass
+    
+    @pytest.mark.e2e
+    @pytest.mark.slow
+    def test_analyze_multiple_regions():
+        """Deve analisar múltiplas regiões."""
+        pass
+    
+    @pytest.mark.e2e
+    @pytest.mark.slow
+    def test_analyze_with_cost_data():
+        """Deve incluir dados de custo."""
+        pass
+Total Estimado: ~10 testes1.2 RelatóriosCopiar# Arquivo: tests/e2e/test_reports.py
+
+class TestReports:
+    """Testes E2E de relatórios."""
+    
+    @pytest.mark.e2e
+    def test_report_saved_to_s3():
+        """Deve salvar relatório no S3."""
+        pass
+    
+    @pytest.mark.e2e
+    def test_report_sent_by_email():
+        """Deve enviar relatório por e-mail."""
+        pass
+    
+    @pytest.mark.e2e
+    def test_report_html_format():
+        """Deve gerar HTML válido."""
+        pass
+Total Estimado: ~5 testes1.3 AgendamentoCopiar# Arquivo: tests/e2e/test_scheduling.py
+
+class TestScheduling:
+    """Testes E2E de agendamento."""
+    
+    @pytest.mark.e2e
+    def test_scheduled_execution():
+        """Deve executar conforme agendamento."""
+        pass
+    
+    @pytest.mark.e2e
+    def test_cloudwatch_event_trigger():
+        """Deve ser disparado por CloudWatch Event."""
+        pass
+Total Estimado: ~3 testesRESUMO TESTES DE SISTEMACategoriaArquivosTestesPrioridadeCenários de Negócio318🔴 CRÍTICATOTAL3~18-Ferramentas: pytest, boto3, requests⚡ TESTES DE PERFORMANCEObjetivoGarantir que o sistema atende aos requisitos de performance.Métricas AlvoMétricaValor EsperadoCríticoTempo de execução Lambda< 5 minutos< 10 minTempo de resposta Bedrock< 30 segundos< 60sThroughput100 recursos/min50/minMemória Lambda< 800MB< 1024MBCold start< 5 segundos< 10sEscopo1. TESTES DE CARGA1.1 Lambda PerformanceCopiar# Arquivo: tests/performance/test_lambda_performance.py
+
+class TestLambdaPerformance:
+    """Testes de performance da Lambda."""
+    
+    @pytest.mark.performance
+    def test_lambda_with_10_resources():
+        """Deve processar 10 recursos em < 30s."""
+        pass
+    
+    @pytest.mark.performance
+    def test_lambda_with_50_resources():
+        """Deve processar 50 recursos em < 2min."""
+        pass
+    
+    @pytest.mark.performance
+    def test_lambda_with_100_resources():
+        """Deve processar 100 recursos em < 5min."""
+        pass
+    
+    @pytest.mark.performance
+    def test_lambda_memory_usage():
+        """Deve usar < 800MB de memória."""
+        pass
+    
+    @pytest.mark.performance
+    def test_lambda_cold_start():
+        """Cold start deve ser < 5s."""
+        pass
+Total Estimado: ~5 testes1.2 Bedrock PerformanceCopiar# Arquivo: tests/performance/test_bedrock_performance.py
+
+class TestBedrockPerformance:
+    """Testes de performance do Bedrock."""
+    
+    @pytest.mark.performance
+    def test_bedrock_response_time_small_prompt():
+        """Deve responder em < 10s com prompt pequeno."""
+        pass
+    
+    @pytest.mark.performance
+    def test_bedrock_response_time_large_prompt():
+        """Deve responder em < 30s com prompt grande."""
+        pass
+    
+    @pytest.mark.performance
+    def test_bedrock_concurrent_requests():
+        """Deve processar requests concorrentes."""
+        pass
+Total Estimado: ~3 testes2. TESTES DE STRESS2.1 Stress TestingCopiar# Arquivo: tests/performance/test_stress.py
+
+class TestStress:
+    """Testes de stress do sistema."""
+    
+    @pytest.mark.stress
+    def test_lambda_with_max_resources():
+        """Deve processar número máximo de recursos."""
+        pass
+    
+    @pytest.mark.stress
+    def test_lambda_timeout_limit():
+        """Deve respeitar timeout de 10 minutos."""
+        pass
+Total Estimado: ~2 testesRESUMO TESTES DE PERFORMANCECategoriaArquivosTestesPrioridadePerformance28🟡 ALTAStress12🟢 MÉDIATOTAL3~10-Ferramentas: pytest-benchmark, locust, artillery🔒 TESTES DE SEGURANÇAObjetivoGarantir que o sistema é seguro e está em conformidade.Escopo1. SEGURANÇA DE INFRAESTRUTURA1.1 IAM PermissionsCopiar# Arquivo: tests/security/test_iam_permissions.py
+
+class TestIAMPermissions:
+    """Testes de permissões IAM."""
+    
+    @pytest.mark.security
+    def test_lambda_role_has_minimum_permissions():
+        """Deve ter apenas permissões necessárias."""
+        pass
+    
+    @pytest.mark.security
+    def test_lambda_cannot_access_unauthorized_services():
+        """Não deve acessar serviços não autorizados."""
+        pass
+    
+    @pytest.mark.security
+    def test_s3_bucket_not_public():
+        """Bucket S3 não deve ser público."""
+        pass
+Total Estimado: ~5 testes1.2 EncryptionCopiar# Arquivo: tests/security/test_encryption.py
+
+class TestEncryption:
+    """Testes de criptografia."""
+    
+    @pytest.mark.security
+    def test_s3_bucket_encryption_enabled():
+        """Bucket deve ter criptografia habilitada."""
+        pass
+    
+    @pytest.mark.security
+    def test_reports_encrypted_at_rest():
+        """Relatórios devem estar criptografados."""
+        pass
+    
+    @pytest.mark.security
+    def test_data_encrypted_in_transit():
+        """Dados devem ser criptografados em trânsito."""
+        pass
+Total Estimado: ~3 testes2. SEGURANÇA DE APLICAÇÃO2.1 Input ValidationCopiar# Arquivo: tests/security/test_input_validation.py
+
+class TestInputValidation:
+    """Testes de validação de entrada."""
+    
+    @pytest.mark.security
+    def test_reject_sql_injection():
+        """Deve rejeitar SQL injection."""
+        pass
+    
+    @pytest.mark.security
+    def test_reject_script_injection():
+        """Deve rejeitar script injection."""
+        pass
+    
+    @pytest.mark.security
+    def test_validate_region_input():
+        """Deve validar entrada de região."""
+        pass
+Total Estimado: ~5 testes2.2 Secrets ManagementCopiar# Arquivo: tests/security/test_secrets.py
+
+class TestSecrets:
+    """Testes de gerenciamento de segredos."""
+    
+    @pytest.mark.security
+    def test_no_hardcoded_credentials():
+        """Não deve ter credenciais hardcoded."""
+        pass
+    
+    @pytest.mark.security
+    def test_environment_variables_used():
+        """Deve usar variáveis de ambiente."""
+        pass
+Total Estimado: ~2 testes3. COMPLIANCE3.1 AWS Best PracticesCopiar# Arquivo: tests/security/test_compliance.py
+
+class TestCompliance:
+    """Testes de conformidade."""
+    
+    @pytest.mark.security
+    def test_cloudwatch_logs_enabled():
+        """Logs do CloudWatch devem estar habilitados."""
+        pass
+    
+    @pytest.mark.security
+    def test_lambda_vpc_configuration():
+        """Lambda deve estar em VPC (se aplicável)."""
+        pass
+Total Estimado: ~5 testesRESUMO TESTES DE SEGURANÇACategoriaArquivosTestesPrioridadeInfraestrutura28🔴 CRÍTICAAplicação27🔴 CRÍTICACompliance15🟡 ALTATOTAL5~20-Ferramentas: bandit, safety, cfn-lint, checkov✅ TESTES DE ACEITAÇÃO (UAT)ObjetivoValidar que o sistema atende aos requisitos de negócio.Escopo1. CENÁRIOS DE USUÁRIO1.1 Análise de RecursosCopiar# Arquivo: tests/acceptance/features/analyze_resources.feature
+
+Feature: Análise de Recursos AWS
+  Como usuário de FinOps
+  Quero analisar recursos AWS
+  Para identificar oportunidades de economia
+
+  Scenario: Análise bem-sucedida
+    Given uma conta AWS com 10 instâncias EC2
+    When executo a análise de FinOps
+    Then devo receber um relatório com recomendações
+    And o relatório deve estar no S3
+    And devo receber um e-mail com o relatório
+
+  Scenario: Análise sem recursos
+    Given uma conta AWS sem recursos
+    When executo a análise de FinOps
+    Then devo receber um relatório vazio
+    And não devo receber recomendações
+
+  Scenario: Análise com recursos ociosos
+    Given uma conta AWS com recursos ociosos
+    When executo a análise de FinOps
+    Then devo receber recomendações de deleção
+    And as recomendações devem ter prioridade HIGH
+Total Estimado: ~10 cenários1.2 RelatóriosCopiar# Arquivo: tests/acceptance/features/reports.feature
+
+Feature: Geração de Relatórios
+  Como usuário de FinOps
+  Quero receber relatórios detalhados
+  Para tomar decisões de otimização
+
+  Scenario: Relatório HTML
+    Given uma análise concluída
+    When gero o relatório HTML
+    Then o HTML deve ser válido
+    And deve conter todas as recomendações
+    And deve ter gráficos de economia
+
+  Scenario: Relatório JSON
+    Given uma análise concluída
+    When gero o relatório JSON
+    Then o JSON deve ser válido
+    And deve ter estrutura correta
+Total Estimado: ~5 cenáriosRESUMO TESTES DE ACEITAÇÃOCategoriaFeaturesCenáriosPrioridadeAnálise110🔴 CRÍTICARelatórios15🟡 ALTATOTAL2~15-Ferramentas: pytest-bdd, behave🔄 TESTES DE REGRESSÃOObjetivoGarantir que novas mudanças não quebram funcionalidades existentes.Estratégia1.Automação: 100% dos testes de regressão automatizados2.CI/CD: Executar em cada commit3.Smoke Tests: Subconjunto crítico (5-10 min)4.Full Regression: Suite completa (30-60 min)Smoke Tests (Críticos)Copiar# Arquivo: tests/regression/test_smoke.py
+
+class TestSmoke:
+    """Testes de smoke (críticos)."""
+    
+    @pytest.mark.smoke
+    def test_lambda_can_be_invoked():
+        """Lambda deve ser invocável."""
+        pass
+    
+    @pytest.mark.smoke
+    def test_bedrock_is_accessible():
+        """Bedrock deve estar acessível."""
+        pass
+    
+    @pytest.mark.smoke
+    def test_s3_bucket_exists():
+        """Bucket S3 deve existir."""
+        pass
+Total Estimado: ~10 testes🛡️ TESTES DE RESILIÊNCIAObjetivoGarantir que o sistema é resiliente a falhas.Escopo1. CHAOS ENGINEERING1.1 Failure InjectionCopiar# Arquivo: tests/resilience/test_failure_injection.py
+
+class TestFailureInjection:
+    """Testes de injeção de falhas."""
+    
+    @pytest.mark.resilience
+    def test_lambda_with_bedrock_timeout():
+        """Deve tratar timeout do Bedrock."""
+        pass
+    
+    @pytest.mark.resilience
+    def test_lambda_with_s3_unavailable():
+        """Deve tratar S3 indisponível."""
+        pass
+    
+    @pytest.mark.resilience
+    def test_lambda_with_network_error():
+        """Deve tratar erro de rede."""
+        pass
+Total Estimado: ~5 testes2. RECOVERY TESTING2.1 RecoveryCopiar# Arquivo: tests/resilience/test_recovery.py
+
+class TestRecovery:
+    """Testes de recuperação."""
+    
+    @pytest.mark.resilience
+    def test_retry_on_transient_error():
+        """Deve fazer retry em erro transitório."""
+        pass
+    
+    @pytest.mark.resilience
+    def test_dead_letter_queue():
+        """Deve enviar para DLQ em caso de falha."""
+        pass
+Total Estimado: ~3 testesRESUMO TESTES DE RESILIÊNCIACategoriaArquivosTestesPrioridadeChaos Engineering15🟡 ALTARecovery13🟡 ALTATOTAL2~8-Ferramentas: chaos-lambda, pytest✅ CRITÉRIOS DE ACEITAÇÃOCritérios de QualidadeCritérioMetaMínimo AceitávelCobertura de Código90%80%Testes Passando100%95%Bugs Críticos00Bugs Médios02Performance100% OK90% OKSegurança100% OK100% OKCritérios de Entrega•✅ Todos os testes críticos passando•✅ Cobertura de código > 80%•✅ Zero bugs críticos•✅ Documentação atualizada•✅ Aprovação do Product Owner🖥️ AMBIENTE DE TESTESAmbientesAmbientePropósitoDadosAWSLocalDesenvolvimentoMockLocalstackDevIntegraçãoSintéticosReal (dev)StagingPré-produçãoProdução-likeReal (staging)ProductionSmoke testsRealReal (prod)Configuração LocalCopiar# Instalar dependências
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Configurar LocalStack
+docker-compose up -d
+
+# Executar testes
+pytest tests/unit -v
+pytest tests/integration -v --localstack
+🛠️ FERRAMENTAS E FRAMEWORKSTesting Frameworks•pytest - Framework principal•pytest-cov - Cobertura de código•pytest-asyncio - Testes async•pytest-mock - Mocks•pytest-bdd - BDD/Gherkin•pytest-benchmark - PerformanceAWS Testing•moto - Mock de serviços AWS•localstack - AWS local•boto3 - SDK AWSPerformance•locust - Testes de carga•artillery - Testes de stressSecurity•bandit - Análise de segurança Python•safety - Vulnerabilidades em dependências•cfn-lint - Validação CloudFormation•checkov - Segurança IaCCI/CD•GitHub Actions - Pipeline•CodeCov - Cobertura•SonarQube - Qualidade de código📅 CRONOGRAMA DE EXECUÇÃOFase 1: Testes Unitários (3 dias)•Dia 1: Domain layer•Dia 2: Application + Infrastructure•Dia 3: Core + InterfacesFase 2: Testes de Integração (2 dias)•Dia 4: AWS services•Dia 5: WorkflowsFase 3: Testes de Sistema (2 dias)•Dia 6: E2E scenarios•Dia 7: Reports + SchedulingFase 4: Testes Não-Funcionais (2 dias)•Dia 8: Performance + Stress•Dia 9: Security + ComplianceFase 5: Testes de Aceitação (1 dia)•Dia 10: UAT + Sign-offTotal: 10 dias úteis📊 RESUMO GERALDistribuição de TestesTipoQuantidade%PrioridadeUnitários36055%🔴 CRÍTICAIntegração589%🔴 CRÍTICASistema (E2E)183%🔴 CRÍTICAPerformance102%🟡 ALTASegurança203%🔴 CRÍTICAAceitação152%🟡 ALTARegressão102%🟡 ALTAResiliência81%🟡 ALTATOTAL~500100%-Esforço EstimadoAtividadeDiasPessoasDesenvolvimento de testes102Execução de testes51Correção de bugs52Documentação21TOTAL22-🎯 CONCLUSÃOEste plano de testes COMPLETO e RIGOROSO garante que a solução AWS FinOps Analyzer v4.0 está:✅ Funcional - Todos os requisitos atendidos
+✅ Confiável - Resiliente a falhas
+✅ Performática - Atende SLAs
+✅ Segura - Conformidade garantida
+✅ Pronta para Produção - Zero bugs críticosPróximos Passos1.✅ Revisar e aprovar plano2.✅ Configurar ambiente de testes3.✅ Implementar testes unitários4.✅ Implementar testes de integração5.✅ Executar suite completa6.✅ Corrigir bugs identificados7.✅ Obter aprovação final8.✅ GO TO PRODUCTION! 🚀Elaborado por: Especialista Sênior em QA
+Aprovado por: _____________
+Data: 24 de Novembro de 2025
+Versão: 1.0
+Status: ✅ PRONTO PARA EXECUÇÃO
