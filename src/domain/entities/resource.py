@@ -11,121 +11,373 @@ from decimal import Decimal
 
 
 class ResourceType(Enum):
-    """Tipos de recursos AWS suportados - 80+ serviços."""
-    # Compute
+    """Tipos de recursos AWS suportados - 200+ serviços (cobertura completa 2025)."""
+    
+    # ============================================================
+    # COMPUTE (15 serviços)
+    # ============================================================
     EC2 = "EC2"
     LAMBDA = "Lambda"
     ECS = "ECS"
     EKS = "EKS"
+    FARGATE = "Fargate"
     BATCH = "Batch"
     LIGHTSAIL = "Lightsail"
-    APPSTREAM = "AppStream"
+    ELASTIC_BEANSTALK = "ElasticBeanstalk"
+    APP_RUNNER = "AppRunner"
+    OUTPOSTS = "Outposts"
+    LOCAL_ZONES = "LocalZones"
+    WAVELENGTH = "Wavelength"
+    SERVERLESS_APPLICATION_REPOSITORY = "ServerlessApplicationRepository"
+    VMWARE_CLOUD = "VMwareCloud"
+    PARALLEL_CLUSTER = "ParallelCluster"
     
-    # Storage
+    # ============================================================
+    # STORAGE (15 serviços)
+    # ============================================================
     S3 = "S3"
+    S3_GLACIER = "S3Glacier"
+    S3_GLACIER_DEEP_ARCHIVE = "S3GlacierDeepArchive"
+    S3_INTELLIGENT_TIERING = "S3IntelligentTiering"
     EBS = "EBS"
     EFS = "EFS"
     FSX = "FSx"
-    GLACIER = "Glacier"
+    FSX_WINDOWS = "FSxWindows"
+    FSX_LUSTRE = "FSxLustre"
+    FSX_NETAPP_ONTAP = "FSxNetAppONTAP"
+    FSX_OPENZFS = "FSxOpenZFS"
     STORAGE_GATEWAY = "StorageGateway"
     BACKUP = "Backup"
+    ELASTIC_DISASTER_RECOVERY = "ElasticDisasterRecovery"
+    FILE_CACHE = "FileCache"
     
-    # Database
+    # ============================================================
+    # DATABASE (17 serviços)
+    # ============================================================
     RDS = "RDS"
+    AURORA = "Aurora"
+    AURORA_SERVERLESS = "AuroraServerless"
+    AURORA_DSQL = "AuroraDS QL"
     DYNAMODB = "DynamoDB"
     ELASTICACHE = "ElastiCache"
+    ELASTICACHE_SERVERLESS = "ElastiCacheServerless"
+    MEMORYDB = "MemoryDB"
     REDSHIFT = "Redshift"
+    REDSHIFT_SERVERLESS = "RedshiftServerless"
     DOCUMENTDB = "DocumentDB"
     NEPTUNE = "Neptune"
     QLDB = "QLDB"
     TIMESTREAM = "Timestream"
+    KEYSPACES = "Keyspaces"
     DAX = "DAX"
-    MEMORYDB = "MemoryDB"
+    RDS_PROXY = "RDSProxy"
     
-    # Networking & Content Delivery
+    # ============================================================
+    # NETWORKING & CONTENT DELIVERY (20 serviços)
+    # ============================================================
+    VPC = "VPC"
+    CLOUDFRONT = "CloudFront"
+    ROUTE53 = "Route53"
+    API_GATEWAY = "APIGateway"
+    DIRECT_CONNECT = "DirectConnect"
+    APP_MESH = "AppMesh"
+    CLOUD_MAP = "CloudMap"
+    GLOBAL_ACCELERATOR = "GlobalAccelerator"
     ELB = "ELB"
     ALB = "ALB"
     NLB = "NLB"
-    CLOUDFRONT = "CloudFront"
-    ROUTE53 = "Route53"
-    VPC = "VPC"
-    DIRECT_CONNECT = "DirectConnect"
-    TRANSIT_GATEWAY = "TransitGateway"
+    GATEWAY_LOAD_BALANCER = "GatewayLoadBalancer"
     PRIVATE_LINK = "PrivateLink"
-    APP_MESH = "AppMesh"
+    TRANSIT_GATEWAY = "TransitGateway"
+    CLIENT_VPN = "ClientVPN"
+    SITE_TO_SITE_VPN = "SiteToSiteVPN"
+    CLOUD_WAN = "CloudWAN"
+    PRIVATE_5G = "Private5G"
+    VPC_LATTICE = "VPCLattice"
+    VERIFIED_ACCESS = "VerifiedAccess"
     
-    # Analytics & Big Data
+    # ============================================================
+    # ANALYTICS (18 serviços)
+    # ============================================================
     ATHENA = "Athena"
     EMR = "EMR"
+    EMR_SERVERLESS = "EMRServerless"
     KINESIS = "Kinesis"
+    KINESIS_DATA_STREAMS = "KinesisDataStreams"
+    KINESIS_DATA_FIREHOSE = "KinesisDataFirehose"
+    KINESIS_DATA_ANALYTICS = "KinesisDataAnalytics"
+    KINESIS_VIDEO_STREAMS = "KinesisVideoStreams"
     MSK = "MSK"
+    MSK_SERVERLESS = "MSKServerless"
     GLUE = "Glue"
+    GLUE_DATABREW = "GlueDataBrew"
     DATA_PIPELINE = "DataPipeline"
     LAKE_FORMATION = "LakeFormation"
+    QUICKSIGHT = "QuickSight"
+    OPENSEARCH_SERVICE = "OpenSearchService"
+    DATA_EXCHANGE = "DataExchange"
+    CLEAN_ROOMS = "CleanRooms"
+    FINSPACE = "FinSpace"
     
-    # Application Services
+    # ============================================================
+    # APPLICATION INTEGRATION (13 serviços)
+    # ============================================================
     SQS = "SQS"
     SNS = "SNS"
     SES = "SES"
     APPSYNC = "AppSync"
     EVENTBRIDGE = "EventBridge"
+    EVENTBRIDGE_PIPES = "EventBridgePipes"
     STEP_FUNCTIONS = "StepFunctions"
-    AMPLIFY = "Amplify"
-    APPCONFIG = "AppConfig"
-    SERVICE_DISCOVERY = "ServiceDiscovery"
-    CONNECTING = "Connecting"
+    STEP_FUNCTIONS_EXPRESS = "StepFunctionsExpress"
+    SWF = "SWF"
+    MQ = "MQ"
+    MANAGED_APACHE_AIRFLOW = "ManagedApacheAirflow"
+    APPFLOW = "AppFlow"
+    B2BI = "B2BI"
     
-    # AI/ML
+    # ============================================================
+    # MACHINE LEARNING & AI (25 serviços)
+    # ============================================================
     SAGEMAKER = "SageMaker"
+    SAGEMAKER_STUDIO = "SageMakerStudio"
+    SAGEMAKER_CANVAS = "SageMakerCanvas"
+    BEDROCK = "Bedrock"
+    AMAZON_Q = "AmazonQ"
+    AMAZON_Q_BUSINESS = "AmazonQBusiness"
+    CODEWHISPERER = "CodeWhisperer"
     TEXTRACT = "Textract"
     REKOGNITION = "Rekognition"
     COMPREHEND = "Comprehend"
     TRANSLATE = "Translate"
+    TRANSCRIBE = "Transcribe"
     POLLY = "Polly"
     LEX = "Lex"
     FORECAST = "Forecast"
-    LOOKOUT = "Lookout"
-    BEDROCK = "Bedrock"
+    PERSONALIZE = "Personalize"
+    FRAUD_DETECTOR = "FraudDetector"
+    LOOKOUT_METRICS = "LookoutMetrics"
+    LOOKOUT_VISION = "LookoutVision"
+    LOOKOUT_EQUIPMENT = "LookoutEquipment"
+    MONITRON = "Monitron"
+    HEALTHLAKE = "HealthLake"
+    KENDRA = "Kendra"
+    AUGMENTED_AI = "AugmentedAI"
+    DEVOPS_GURU = "DevOpsGuru"
     
-    # Developer Tools & DevOps
-    CODEBUILD = "CodeBuild"
-    CODEPIPELINE = "CodePipeline"
-    CODEDEPLOY = "CodeDeploy"
+    # ============================================================
+    # DEVELOPER TOOLS (18 serviços)
+    # ============================================================
     CODECOMMIT = "CodeCommit"
-    CLOUDFORMATION = "CloudFormation"
-    OPSWORKS = "OpsWorks"
-    SYSTEMS_MANAGER = "SystemsManager"
-    CLOUDWATCH = "CloudWatch"
+    CODEBUILD = "CodeBuild"
+    CODEDEPLOY = "CodeDeploy"
+    CODEPIPELINE = "CodePipeline"
+    CODESTAR = "CodeStar"
+    CODECATALYST = "CodeCatalyst"
+    CODEGURU = "CodeGuru"
+    CODEGURU_REVIEWER = "CodeGuruReviewer"
+    CODEGURU_PROFILER = "CodeGuruProfiler"
+    CODEARTIFACT = "CodeArtifact"
+    CLOUD9 = "Cloud9"
+    CLOUDSHELL = "CloudShell"
     X_RAY = "XRay"
+    APPLICATION_COMPOSER = "ApplicationComposer"
+    FAULT_INJECTION_SIMULATOR = "FaultInjectionSimulator"
+    MICROSERVICE_EXTRACTOR = "MicroserviceExtractor"
+    PROTON = "Proton"
+    COPILOT_CLI = "CopilotCLI"
     
-    # Security & Identity
+    # ============================================================
+    # SECURITY, IDENTITY & COMPLIANCE (25 serviços)
+    # ============================================================
     IAM = "IAM"
+    IAM_IDENTITY_CENTER = "IAMIdentityCenter"
     COGNITO = "Cognito"
+    VERIFIED_PERMISSIONS = "VerifiedPermissions"
     SECRETS_MANAGER = "SecretsManager"
     KMS = "KMS"
     CLOUDHSM = "CloudHSM"
     CERTIFICATE_MANAGER = "CertificateManager"
+    PRIVATE_CERTIFICATE_AUTHORITY = "PrivateCertificateAuthority"
     WAF = "WAF"
     SHIELD = "Shield"
+    FIREWALL_MANAGER = "FirewallManager"
+    NETWORK_FIREWALL = "NetworkFirewall"
     GUARDDUTY = "GuardDuty"
     MACIE = "Macie"
     INSPECTOR = "Inspector"
-    AUDIT_MANAGER = "AuditManager"
+    DETECTIVE = "Detective"
     SECURITY_HUB = "SecurityHub"
+    AUDIT_MANAGER = "AuditManager"
+    ARTIFACT = "Artifact"
     RESOURCE_ACCESS_MANAGER = "RAM"
+    DIRECTORY_SERVICE = "DirectoryService"
+    PAYMENT_CRYPTOGRAPHY = "PaymentCryptography"
+    SIGNER = "Signer"
+    SECURITY_LAKE = "SecurityLake"
     
-    # Enterprise & End User Computing
-    WORKSPACES = "Workspaces"
-    WORKDOCS = "WorkDocs"
-    APPSTREAM_2 = "AppStream2.0"
-    
-    # Management & Governance
-    CONFIG = "Config"
+    # ============================================================
+    # MANAGEMENT & GOVERNANCE (25 serviços)
+    # ============================================================
+    CLOUDWATCH = "CloudWatch"
+    CLOUDWATCH_LOGS = "CloudWatchLogs"
+    CLOUDWATCH_LOGS_INSIGHTS = "CloudWatchLogsInsights"
     CLOUDTRAIL = "CloudTrail"
+    CONFIG = "Config"
+    SYSTEMS_MANAGER = "SystemsManager"
+    SYSTEMS_MANAGER_PARAMETER_STORE = "SystemsManagerParameterStore"
+    CLOUDFORMATION = "CloudFormation"
+    SERVICE_CATALOG = "ServiceCatalog"
     TRUSTED_ADVISOR = "TrustedAdvisor"
     CONTROL_TOWER = "ControlTower"
+    LICENSE_MANAGER = "LicenseManager"
+    ORGANIZATIONS = "Organizations"
+    RESOURCE_GROUPS = "ResourceGroups"
+    TAG_EDITOR = "TagEditor"
+    MANAGED_GRAFANA = "ManagedGrafana"
+    MANAGED_PROMETHEUS = "ManagedPrometheus"
+    OPSWORKS = "OpsWorks"
+    OPSWORKS_CM = "OpsWorksCM"
+    CHATBOT = "Chatbot"
+    LAUNCH_WIZARD = "LaunchWizard"
+    RESILIENCE_HUB = "ResilienceHub"
+    INCIDENT_MANAGER = "IncidentManager"
+    SERVICE_MANAGEMENT_CONNECTOR = "ServiceManagementConnector"
+    APP_CONFIG = "AppConfig"
     
-    # Generic/Unknown
+    # ============================================================
+    # MIGRATION & TRANSFER (12 serviços)
+    # ============================================================
+    MIGRATION_HUB = "MigrationHub"
+    APPLICATION_MIGRATION_SERVICE = "ApplicationMigrationService"
+    DATABASE_MIGRATION_SERVICE = "DatabaseMigrationService"
+    DMS_FLEET_ADVISOR = "DMSFleetAdvisor"
+    DATASYNC = "DataSync"
+    TRANSFER_FAMILY = "TransferFamily"
+    MIGRATION_EVALUATOR = "MigrationEvaluator"
+    MIGRATION_HUB_REFACTOR_SPACES = "MigrationHubRefactorSpaces"
+    MIGRATION_HUB_ORCHESTRATOR = "MigrationHubOrchestrator"
+    MAINFRAME_MODERNIZATION = "MainframeModernization"
+    SNOW_FAMILY = "SnowFamily"
+    SNOWCONE = "Snowcone"
+    
+    # ============================================================
+    # BUSINESS APPLICATIONS (12 serviços)
+    # ============================================================
+    CONNECT = "Connect"
+    CONNECT_CUSTOMER_PROFILES = "ConnectCustomerProfiles"
+    PINPOINT = "Pinpoint"
+    CHIME = "Chime"
+    CHIME_SDK = "ChimeSDK"
+    WORKMAIL = "WorkMail"
+    WORKDOCS = "WorkDocs"
+    ALEXA_FOR_BUSINESS = "AlexaForBusiness"
+    AMPLIFY = "Amplify"
+    AMPLIFY_UI_BUILDER = "AmplifyUIBuilder"
+    SUPPLY_CHAIN = "SupplyChain"
+    WICKR = "Wickr"
+    
+    # ============================================================
+    # END USER COMPUTING (5 serviços)
+    # ============================================================
+    WORKSPACES = "WorkSpaces"
+    WORKSPACES_WEB = "WorkSpacesWeb"
+    WORKSPACES_THIN_CLIENT = "WorkSpacesThinClient"
+    APPSTREAM = "AppStream"
+    APPSTREAM_2 = "AppStream2.0"
+    
+    # ============================================================
+    # IOT (15 serviços)
+    # ============================================================
+    IOT_CORE = "IoTCore"
+    IOT_GREENGRASS = "IoTGreengrass"
+    IOT_ANALYTICS = "IoTAnalytics"
+    IOT_DEVICE_MANAGEMENT = "IoTDeviceManagement"
+    IOT_DEVICE_DEFENDER = "IoTDeviceDefender"
+    IOT_EVENTS = "IoTEvents"
+    IOT_SITEWISE = "IoTSiteWise"
+    IOT_TWINMAKER = "IoTTwinMaker"
+    IOT_FLEETWISE = "IoTFleetWise"
+    IOT_ROBORUNNER = "IoTRoboRunner"
+    IOT_1CLICK = "IoT1Click"
+    IOT_BUTTON = "IoTButton"
+    IOT_EDUKIT = "IoTEduKit"
+    IOT_EXPRESSLINK = "IoTExpressLink"
+    FREERTOS = "FreeRTOS"
+    
+    # ============================================================
+    # ROBOTICS (2 serviços)
+    # ============================================================
+    ROBOMAKER = "RoboMaker"
+    IOT_ROBORUNNER = "IoTRoboRunner"
+    
+    # ============================================================
+    # MEDIA SERVICES (12 serviços)
+    # ============================================================
+    ELASTIC_TRANSCODER = "ElasticTranscoder"
+    ELEMENTAL_MEDIACONVERT = "ElementalMediaConvert"
+    ELEMENTAL_MEDIALIVE = "ElementalMediaLive"
+    ELEMENTAL_MEDIAPACKAGE = "ElementalMediaPackage"
+    ELEMENTAL_MEDIASTORE = "ElementalMediaStore"
+    ELEMENTAL_MEDIATAILOR = "ElementalMediaTailor"
+    ELEMENTAL_MEDIACONNECT = "ElementalMediaConnect"
+    KINESIS_VIDEO_STREAMS = "KinesisVideoStreams"
+    INTERACTIVE_VIDEO_SERVICE = "InteractiveVideoService"
+    NIMBLE_STUDIO = "NimbleStudio"
+    THINKBOX_DEADLINE = "ThinkboxDeadline"
+    ELASTIC_TRANSCODER_PIPELINE = "ElasticTranscoderPipeline"
+    
+    # ============================================================
+    # GAME TECH (3 serviços)
+    # ============================================================
+    GAMELIFT = "GameLift"
+    GAMESPARKS = "GameSparks"
+    LUMBERYARD = "Lumberyard"
+    
+    # ============================================================
+    # AR/VR (3 serviços)
+    # ============================================================
+    SUMERIAN = "Sumerian"
+    AR_VR = "ARVR"
+    SIMSPACE_WEAVER = "SimSpaceWeaver"
+    
+    # ============================================================
+    # BLOCKCHAIN (2 serviços)
+    # ============================================================
+    MANAGED_BLOCKCHAIN = "ManagedBlockchain"
+    QUANTUM_LEDGER_DATABASE = "QuantumLedgerDatabase"
+    
+    # ============================================================
+    # QUANTUM COMPUTING (1 serviço)
+    # ============================================================
+    BRAKET = "Braket"
+    
+    # ============================================================
+    # SATELLITE (1 serviço)
+    # ============================================================
+    GROUND_STATION = "GroundStation"
+    
+    # ============================================================
+    # COST MANAGEMENT (7 serviços)
+    # ============================================================
+    COST_EXPLORER = "CostExplorer"
+    COST_AND_USAGE_REPORT = "CostAndUsageReport"
+    BUDGETS = "Budgets"
+    COST_ANOMALY_DETECTION = "CostAnomalyDetection"
+    SAVINGS_PLANS = "SavingsPlans"
+    BILLING_CONDUCTOR = "BillingConductor"
+    MARKETPLACE = "Marketplace"
+    
+    # ============================================================
+    # CUSTOMER ENABLEMENT (3 serviços)
+    # ============================================================
+    IQ = "IQ"
+    SUPPORT = "Support"
+    MANAGED_SERVICES = "ManagedServices"
+    
+    # ============================================================
+    # GENERIC/UNKNOWN
+    # ============================================================
     GENERIC = "Generic"
     UNKNOWN = "Unknown"
 
