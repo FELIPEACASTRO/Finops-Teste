@@ -306,13 +306,12 @@ class ResourceType(Enum):
     FREERTOS = "FreeRTOS"
     
     # ============================================================
-    # ROBOTICS (2 serviços)
+    # ROBOTICS (1 serviço)
     # ============================================================
     ROBOMAKER = "RoboMaker"
-    IOT_ROBORUNNER = "IoTRoboRunner"
     
     # ============================================================
-    # MEDIA SERVICES (12 serviços)
+    # MEDIA SERVICES (11 serviços)
     # ============================================================
     ELASTIC_TRANSCODER = "ElasticTranscoder"
     ELEMENTAL_MEDIACONVERT = "ElementalMediaConvert"
@@ -321,7 +320,6 @@ class ResourceType(Enum):
     ELEMENTAL_MEDIASTORE = "ElementalMediaStore"
     ELEMENTAL_MEDIATAILOR = "ElementalMediaTailor"
     ELEMENTAL_MEDIACONNECT = "ElementalMediaConnect"
-    KINESIS_VIDEO_STREAMS = "KinesisVideoStreams"
     INTERACTIVE_VIDEO_SERVICE = "InteractiveVideoService"
     NIMBLE_STUDIO = "NimbleStudio"
     THINKBOX_DEADLINE = "ThinkboxDeadline"
