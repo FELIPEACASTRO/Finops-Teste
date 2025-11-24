@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Solução de FinOps Automatizada para AWS - Deploy Completo'
+
+Parameters:
+  EmailFrom:
+    Type: String
+    Description: 'Endereço de e-mail verificado no SES para enviar relatórios'
+    Default: 'no-reply@example.com'
+  
+  EmailTo:
+    Type: String
+    Description: 'Lista de e-mails para receber relatórios (separados por vírgula)'
+    Default: 'admin@example.com'
+  
+  CronSchedule:
+    Type: String
+    Description: 'Expressão cron para agendamento diário (UTC)'
+    Default: 'cron(0 8 * * ? *)'
+
+Resources:
+  # S3 Bucket para armazenar relatórios
+  FinOpsReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'finops-reports-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldReports
+            Status: Enabled
+            ExpirationInDays: 90
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # Tabela DynamoDB para tracking de recomendações
+  FinOpsRecommendationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: finops-recommendations
+      AttributeDefinitions:
+        - AttributeName: recommendation_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: recommendation_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+  # IAM Role para a função Lambda
+  FinOpsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FinOpsLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: FinOpsLambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ce:GetCostAndUsage
+                  - ce:GetCostForecast
+                  - compute-optimizer:GetEC2InstanceRecommendations
+                  - compute-optimizer:GetEBSVolumeRecommendations
+                  - compute-optimizer:GetLambdaFunctionRecommendations
+                  - compute-optimizer:GetECSServiceRecommendations
+                  - support:DescribeTrustedAdvisorChecks
+                  - support:DescribeTrustedAdvisorCheckResult
+                  - cloudwatch:GetMetricStatistics
+                  - ec2:DescribeInstances
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub '${FinOpsReportsBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource: !GetAtt FinOpsRecommendationsTable.Arn
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: '*'
+
+  # Função Lambda
+  FinOpsAnalyzerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: finops-analyzer
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      Role: !GetAtt FinOpsLambdaRole.Arn
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref FinOpsReportsBucket
+          DYNAMODB_TABLE_NAME: !Ref FinOpsRecommendationsTable
+          EMAIL_FROM: !Ref EmailFrom
+          EMAIL_TO: !Ref EmailTo
+      Code:
+        ZipFile: |
+          # Placeholder - Substitua pelo código da função lambda_finops_analyzer.py
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'body': 'Deploy inicial - Atualize o código da função'
+              }
+
+  # Permissão para o EventBridge invocar a Lambda
+  FinOpsLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref FinOpsAnalyzerFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt FinOpsScheduleRule.Arn
+
+  # Regra do EventBridge para agendamento diário
+  FinOpsScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: daily-finops-report-trigger
+      Description: 'Aciona a análise de FinOps diariamente'
+      ScheduleExpression: !Ref CronSchedule
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt FinOpsAnalyzerFunction.Arn
+          Id: FinOpsAnalyzerTarget
+
+Outputs:
+  S3BucketName:
+    Description: 'Nome do bucket S3 para relatórios'
+    Value: !Ref FinOpsReportsBucket
+  
+  DynamoDBTableName:
+    Description: 'Nome da tabela DynamoDB para tracking'
+    Value: !Ref FinOpsRecommendationsTable
+  
+  LambdaFunctionName:
+    Description: 'Nome da função Lambda'
+    Value: !Ref FinOpsAnalyzerFunction
+  
+  LambdaFunctionArn:
+    Description: 'ARN da função Lambda'
+    Value: !GetAtt FinOpsAnalyzerFunction.Arn
