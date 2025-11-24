@@ -57,7 +57,7 @@ class ResourceType(Enum):
     RDS = "RDS"
     AURORA = "Aurora"
     AURORA_SERVERLESS = "AuroraServerless"
-    AURORA_DSQL = "AuroraDS QL"
+    AURORA_DSQL = "AuroraDSQL"
     DYNAMODB = "DynamoDB"
     ELASTICACHE = "ElastiCache"
     ELASTICACHE_SERVERLESS = "ElastiCacheServerless"
