@@ -18,108 +18,128 @@ Analisar **TODOS os produtos AWS** e fornecer recomendações automáticas de ec
 
 ## ☁️ Cobertura Completa de Serviços AWS
 
-### ✅ Total: 83+ Serviços AWS em 9 Categorias
+### ✅ Total: 268 Serviços AWS em 24 Categorias
 
-#### 1. **Compute** (7 serviços)
-- EC2 (Elastic Compute Cloud)
-- Lambda (Serverless Functions)
-- ECS (Elastic Container Service)
-- EKS (Elastic Kubernetes Service)
-- Batch
-- Lightsail
-- AppStream
+**Arquitetura Híbrida Inteligente:**
+- ✅ 79 serviços com metadados explícitos detalhados
+- ✅ 189 serviços com metadados auto-gerados inteligentes
+- ✅ Sistema de auto-detecção de categoria
+- ✅ Expansão de 3.2x desde a versão inicial
 
-#### 2. **Storage** (7 serviços)
-- S3 (Simple Storage Service)
-- EBS (Elastic Block Store)
-- EFS (Elastic File System)
-- FSx (File Systems)
-- Glacier (Archival Storage)
-- Storage Gateway
-- Backup
+#### 1. **Compute** (15 serviços)
+- EC2, Lambda, ECS, EKS, Fargate, Batch
+- Lightsail, Elastic Beanstalk, App Runner, Outposts
+- Local Zones, Wavelength, Serverless Application Repository
+- VMware Cloud, Parallel Cluster
 
-#### 3. **Database** (10 serviços)
-- RDS (Relational Database Service)
-- DynamoDB (NoSQL)
-- ElastiCache (Redis/Memcached)
-- Redshift (Data Warehouse)
-- DocumentDB (MongoDB Compatible)
-- Neptune (Graph Database)
-- QLDB (Quantum Ledger)
-- Timestream (Time Series)
-- DAX (DynamoDB Accelerator)
-- MemoryDB (Redis Compatible)
+#### 2. **Storage** (16 serviços)
+- S3, EBS, EFS, FSx (Windows, Lustre, NetApp ONTAP, OpenZFS)
+- S3 Glacier, S3 Glacier Deep Archive, S3 Intelligent-Tiering
+- Storage Gateway, Backup, Elastic Disaster Recovery, File Cache
 
-#### 4. **Networking** (10 serviços)
-- ELB (Elastic Load Balancing)
-- ALB (Application Load Balancer)
-- NLB (Network Load Balancer)
-- CloudFront (CDN)
-- Route 53 (DNS)
-- VPC (Virtual Private Cloud)
-- Direct Connect
-- Transit Gateway
-- PrivateLink
-- App Mesh
+#### 3. **Database** (17 serviços)
+- RDS, Aurora, Aurora Serverless, Aurora DSQL, RDS Proxy
+- DynamoDB, ElastiCache, ElastiCache Serverless, MemoryDB
+- Redshift, Redshift Serverless, DocumentDB, Neptune
+- QLDB, Timestream, Keyspaces, DAX
 
-#### 5. **Analytics** (7 serviços)
-- Athena (SQL Queries)
-- EMR (Elastic MapReduce)
-- Kinesis (Streaming)
-- MSK (Managed Kafka)
-- Glue (ETL)
-- Data Pipeline
-- Lake Formation
+#### 4. **Networking & Content Delivery** (19 serviços)
+- VPC, CloudFront, Route 53, API Gateway, Direct Connect
+- ELB, ALB, NLB, Gateway Load Balancer, App Mesh
+- PrivateLink, Transit Gateway, Cloud Map, Global Accelerator
+- Client VPN, Site-to-Site VPN, Cloud WAN, Private 5G, VPC Lattice
 
-#### 6. **Application Services** (9 serviços)
-- SQS (Queue Service)
-- SNS (Notification Service)
-- SES (Email Service)
-- AppSync (GraphQL)
-- EventBridge
-- Step Functions (Workflows)
-- Amplify
-- AppConfig
-- Service Discovery
+#### 5. **Analytics & Big Data** (22 serviços)
+- Athena, EMR, Kinesis, Kinesis Data Streams, Kinesis Firehose
+- Kinesis Video Streams, Kinesis Data Analytics, MSK, MSK Connect
+- Glue, Data Pipeline, Lake Formation, QuickSight, DataZone
+- Clean Rooms, OpenSearch, FinSpace, Data Exchange, Redshift
+- CloudSearch, Entity Resolution, Supply Chain
 
-#### 7. **AI/ML** (10 serviços)
-- SageMaker (Machine Learning)
-- Textract (OCR)
-- Rekognition (Computer Vision)
-- Comprehend (NLP)
-- Translate
-- Polly (Text-to-Speech)
-- Lex (Chatbots)
-- Forecast (Time Series ML)
-- Lookout (Anomaly Detection)
-- Bedrock (Foundation Models)
+#### 6. **Application Integration** (17 serviços)
+- SQS, SNS, SES, AppSync, EventBridge, EventBridge Pipes
+- Step Functions, Step Functions Express, Amplify, SWF
+- MQ, Managed Apache Airflow, AppFlow, B2BI
 
-#### 8. **Developer Tools** (9 serviços)
-- CodeBuild
-- CodePipeline
-- CodeDeploy
-- CodeCommit
-- CloudFormation
-- OpsWorks
-- Systems Manager
-- CloudWatch
-- X-Ray
+#### 7. **AI & Machine Learning** (22 serviços)
+- SageMaker, Bedrock, Rekognition, Textract, Comprehend
+- Translate, Polly, Lex, Forecast, Lookout for Metrics
+- Lookout for Equipment, Lookout for Vision, Personalize
+- Fraud Detector, Kendra, CodeWhisperer, DevOps Guru, Q
+- HealthLake, Monitron, Panorama, PartyRock
 
-#### 9. **Security & Identity** (14 serviços)
-- IAM (Identity & Access Management)
-- Cognito (User Authentication)
-- Secrets Manager
-- KMS (Key Management)
-- CloudHSM
-- Certificate Manager
-- WAF (Web Application Firewall)
-- Shield (DDoS Protection)
-- GuardDuty (Threat Detection)
-- Macie (Data Security)
-- Inspector (Vulnerability Assessment)
-- Audit Manager
-- Security Hub
-- Resource Access Manager
+#### 8. **Developer Tools** (13 serviços)
+- CodeBuild, CodePipeline, CodeDeploy, CodeCommit, CodeArtifact
+- CodeGuru, Cloud9, CloudShell, CloudFormation, OpsWorks
+- Systems Manager, CloudWatch, X-Ray
+
+#### 9. **Security, Identity & Compliance** (22 serviços)
+- IAM, IAM Identity Center, Cognito, Directory Service
+- Secrets Manager, KMS, CloudHSM, Certificate Manager
+- WAF, Shield, GuardDuty, Macie, Inspector, Detective
+- Audit Manager, Security Hub, Resource Access Manager
+- Firewall Manager, Network Firewall, Verified Access
+- Private CA, Signer
+
+#### 10. **Management & Governance** (22 serviços)
+- Organizations, Control Tower, Service Catalog, Config
+- CloudTrail, Systems Manager, CloudWatch, Auto Scaling
+- Trusted Advisor, License Manager, Service Quotas
+- Health Dashboard, Launch Wizard, Resource Groups
+- Tag Editor, Compute Optimizer, App Config, Proton
+- Resilience Hub, Incident Manager, Grafana, Prometheus
+
+#### 11. **Migration & Transfer** (11 serviços)
+- Migration Hub, Server Migration, Database Migration Service
+- DataSync, Transfer Family, Snow Family, Application Discovery
+- Application Migration, Migration Evaluator, CloudEndure
+- Mainframe Modernization
+
+#### 12. **Business Applications** (12 serviços)
+- WorkMail, WorkDocs, Chime, Connect, Pinpoint
+- Simple Email Service, WorkSpaces, AppStream, WorkLink
+- Alexa for Business, Wickr, Supply Chain
+
+#### 13. **End User Computing** (5 serviços)
+- WorkSpaces, WorkSpaces Web, AppStream, WorkLink, WorkSpaces Thin Client
+
+#### 14. **Internet of Things (IoT)** (15 serviços)
+- IoT Core, IoT Greengrass, IoT Analytics, IoT Device Defender
+- IoT Device Management, IoT Events, IoT SiteWise, IoT Things Graph
+- IoT 1-Click, IoT FleetWise, IoT TwinMaker, IoT RoboRunner
+- IoT ExpressLink, FreeRTOS, IoT EduKit
+
+#### 15. **Robotics** (2 serviços)
+- RoboMaker, IoT RoboRunner
+
+#### 16. **Media Services** (11 serviços)
+- MediaConvert, MediaLive, MediaPackage, MediaStore
+- MediaTailor, Interactive Video Service (IVS), Elastic Transcoder
+- Nimble Studio, Elemental Appliances, Elemental Link, Thinkbox
+
+#### 17. **Game Tech** (2 serviços)
+- GameLift, GameSparks
+
+#### 18. **AR & VR** (2 serviços)
+- Sumerian, AR/VR Services
+
+#### 19. **Blockchain** (2 serviços)
+- Managed Blockchain, QLDB
+
+#### 20. **Quantum Computing** (1 serviço)
+- Braket
+
+#### 21. **Satellite** (1 serviço)
+- Ground Station
+
+#### 22. **Cost Management** (6 serviços)
+- Cost Explorer, Budgets, Cost and Usage Report
+- Savings Plans, Reserved Instance Reporting, Billing Console
+
+#### 23. **Customer Enablement** (4 serviços)
+- Support Plans, IQ, Training and Certification, re:Post
+
+#### 24. **Other Services** (Auto-generated defaults para serviços não categorizados)
 
 ---
 
