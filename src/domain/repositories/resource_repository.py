@@ -1,100 +1,61 @@
 """
-Repository interfaces for resource data access.
-Following the Repository Pattern and Dependency Inversion Principle.
+Domain Repository: ResourceRepository
+Interface para persistência de recursos
 """
 
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from ..entities import AWSResource, CostData, ResourceType
+from ..entities.resource import Resource, ResourceType
 
 
-class IResourceRepository(ABC):
-    """
-    Interface for resource data access.
+class ResourceRepository(ABC):
+    """Interface para repositório de recursos"""
     
-    This interface follows the Dependency Inversion Principle by defining
-    abstractions that concrete implementations must follow.
-    """
-
     @abstractmethod
-    async def get_resources_by_type(self, resource_type: ResourceType, region: str) -> List[AWSResource]:
-        """Get all resources of a specific type in a region."""
+    async def save(self, resource: Resource) -> None:
+        """Salva um recurso"""
         pass
-
-    @abstractmethod
-    async def get_resource_by_id(self, resource_id: str) -> Optional[AWSResource]:
-        """Get a specific resource by ID."""
-        pass
-
-    @abstractmethod
-    async def get_resource_metrics(
-        self, 
-        resource_id: str, 
-        resource_type: ResourceType,
-        start_time: datetime,
-        end_time: datetime
-    ) -> Dict[str, Any]:
-        """Get metrics for a specific resource."""
-        pass
-
-    @abstractmethod
-    async def get_all_resources(self, regions: List[str]) -> List[AWSResource]:
-        """Get all resources across specified regions."""
-        pass
-
-
-class ICostRepository(ABC):
-    """
-    Interface for cost data access.
     
-    Separates cost concerns from resource concerns following SRP.
-    """
-
     @abstractmethod
-    async def get_cost_data(self, start_date: datetime, end_date: datetime) -> CostData:
-        """Get cost data for the specified period."""
+    async def find_by_id(self, resource_id: str) -> Optional[Resource]:
+        """Busca recurso por ID"""
         pass
-
-    @abstractmethod
-    async def get_cost_by_service(
-        self, 
-        start_date: datetime, 
-        end_date: datetime
-    ) -> Dict[str, float]:
-        """Get costs broken down by AWS service."""
-        pass
-
-    @abstractmethod
-    async def get_resource_cost(
-        self, 
-        resource_id: str, 
-        start_date: datetime, 
-        end_date: datetime
-    ) -> float:
-        """Get cost for a specific resource."""
-        pass
-
-
-class IReportRepository(ABC):
-    """
-    Interface for report persistence.
     
-    Handles saving and retrieving analysis reports.
-    """
-
     @abstractmethod
-    async def save_report(self, report: Dict[str, Any], report_id: str) -> str:
-        """Save analysis report and return the saved location."""
+    async def find_by_type(self, resource_type: ResourceType) -> List[Resource]:
+        """Busca recursos por tipo"""
         pass
-
+    
     @abstractmethod
-    async def get_report(self, report_id: str) -> Optional[Dict[str, Any]]:
-        """Get a saved report by ID."""
+    async def find_by_region(self, region: str) -> List[Resource]:
+        """Busca recursos por região"""
         pass
-
+    
     @abstractmethod
-    async def list_reports(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """List recent reports."""
+    async def find_by_tags(self, tags: Dict[str, str]) -> List[Resource]:
+        """Busca recursos por tags"""
+        pass
+    
+    @abstractmethod
+    async def find_all(self) -> List[Resource]:
+        """Retorna todos os recursos"""
+        pass
+    
+    @abstractmethod
+    async def delete(self, resource_id: str) -> None:
+        """Remove um recurso"""
+        pass
+    
+    @abstractmethod
+    async def find_by_criteria(
+        self,
+        resource_type: Optional[ResourceType] = None,
+        region: Optional[str] = None,
+        tags: Optional[Dict[str, str]] = None,
+        created_after: Optional[datetime] = None,
+        created_before: Optional[datetime] = None
+    ) -> List[Resource]:
+        """Busca recursos por critérios múltiplos"""
         pass
