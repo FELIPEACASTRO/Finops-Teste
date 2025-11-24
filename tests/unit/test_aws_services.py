@@ -7,20 +7,26 @@ from src.infrastructure.aws.aws_service_registry import (
     get_service_info,
     get_services_by_category,
     get_all_categories,
+    get_total_services_count,
     ServiceCategory,
 )
 
 
 class TestAWSServiceRegistry:
-    """Tests for AWS service registry covering 80+ services."""
+    """Tests for AWS service registry covering 268 AWS services."""
     
-    def test_all_resource_types_in_registry(self):
-        """Test all ResourceType enum values are in registry (except generic/unknown)."""
+    def test_all_resource_types_supported(self):
+        """Test all ResourceType enum values are supported (via registry or auto-generation)."""
         all_types = [t for t in ResourceType if t.value not in ['Generic', 'Unknown']]
-        registry_types = set(AWS_SERVICE_REGISTRY.keys())
         
-        # 80+ types should be in registry
-        assert len(registry_types) >= 65
+        # All 268 services should have metadata (explicit or auto-generated)
+        for resource_type in all_types:
+            info = get_service_info(resource_type)
+            assert info is not None
+            assert 'name' in info
+            assert 'category' in info
+            assert 'metrics' in info
+            assert 'optimization_opportunities' in info
     
     def test_service_info_retrieval(self):
         """Test retrieving service info."""
@@ -116,22 +122,43 @@ class TestAWSServiceRegistry:
     
     def test_service_registry_completeness(self):
         """Test service registry has meaningful data."""
+        # Explicit registry should have core services
         registry_count = len(AWS_SERVICE_REGISTRY)
+        assert registry_count >= 70
         
-        # Should have at least 65 services
-        assert registry_count >= 65
-        
-        # Each service should have metrics
+        # Each explicit service should have complete metadata
         for service_type, info in AWS_SERVICE_REGISTRY.items():
             assert 'name' in info
             assert 'category' in info
             assert 'metrics' in info
             assert 'optimization_opportunities' in info
             assert len(info['optimization_opportunities']) > 0
+    
+    def test_auto_generation_works(self):
+        """Test that auto-generation works for services not in explicit registry."""
+        # Pick a service that's likely not in the explicit registry
+        all_types = [t for t in ResourceType if t not in AWS_SERVICE_REGISTRY and t.value not in ['Generic', 'Unknown']]
+        
+        # Should have at least 150 auto-generated services
+        assert len(all_types) >= 150
+        
+        # Test auto-generation for first 10
+        for resource_type in all_types[:10]:
+            info = get_service_info(resource_type)
+            assert info is not None
+            assert info['name'] != ''
+            assert info['category'] in ServiceCategory
+            assert len(info['metrics']) > 0
+            assert len(info['optimization_opportunities']) > 0
+    
+    def test_total_services_count(self):
+        """Test total services count function."""
+        total = get_total_services_count()
+        assert total == 268
 
 
 class TestResourceTypeExpansion:
-    """Tests for ResourceType enum expansion to 80+ services."""
+    """Tests for ResourceType enum expansion to 268 AWS services."""
     
     def test_compute_resource_types(self):
         """Test all compute resource types exist."""
@@ -155,7 +182,7 @@ class TestResourceTypeExpansion:
             ResourceType.EBS,
             ResourceType.EFS,
             ResourceType.FSX,
-            ResourceType.GLACIER,
+            ResourceType.S3_GLACIER,
             ResourceType.STORAGE_GATEWAY,
             ResourceType.BACKUP,
         ]
@@ -241,5 +268,5 @@ class TestResourceTypeExpansion:
         """Test total number of resource types."""
         resource_types = [t for t in ResourceType]
         
-        # Should have 80+ types (including GENERIC and UNKNOWN)
-        assert len(resource_types) >= 80
+        # Should have 268+ types (including GENERIC and UNKNOWN)
+        assert len(resource_types) >= 260
