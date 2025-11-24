@@ -131,14 +131,16 @@ function scrollToSection(sectionId) {
 }
 
 async function loadServices() {
-    const container = document.getElementById('servicesContainer');
+    const container = document.getElementById('services-panel');
+    if (!container) return;
     
     try {
         const response = await fetch('/api/services');
         const data = await response.json();
         
         allServices = data.categories;
-        document.getElementById('countAll').textContent = data.total_services;
+        const countEl = document.getElementById('countAll');
+        if (countEl) countEl.textContent = data.total_services;
         
         displayServices();
     } catch (error) {
@@ -179,7 +181,8 @@ function initFilterButtons() {
 }
 
 function displayServices() {
-    const container = document.getElementById('servicesContainer');
+    const container = document.getElementById('services-panel');
+    if (!container) return;
     container.innerHTML = '';
     
     let servicesToShow = [];
@@ -201,6 +204,10 @@ function displayServices() {
         return;
     }
 
+    const servicesWrapper = document.createElement('div');
+    servicesWrapper.className = 'services-grid';
+    servicesWrapper.setAttribute('role', 'list');
+    
     servicesToShow.slice(0, 50).forEach((service, index) => {
         const card = document.createElement('article');
         card.className = 'service-card';
@@ -211,7 +218,7 @@ function displayServices() {
             <div class="service-name">${escapeHtml(service.info.name)}</div>
             <div class="service-category">${escapeHtml(service.info.category)}</div>
         `;
-        container.appendChild(card);
+        servicesWrapper.appendChild(card);
     });
 
     if (servicesToShow.length > 50) {
@@ -222,10 +229,10 @@ function displayServices() {
             <div class="service-name">+${servicesToShow.length - 50} mais</div>
             <div class="service-category">Serviços adicionais</div>
         `;
-        container.appendChild(moreCard);
+        servicesWrapper.appendChild(moreCard);
     }
     
-    container.setAttribute('role', 'list');
+    container.appendChild(servicesWrapper);
 }
 
 function escapeHtml(text) {
