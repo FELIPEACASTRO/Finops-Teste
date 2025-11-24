@@ -1,0 +1,347 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Solução de FinOps Automatizada v3.1 FIXED - Deploy Completo com TODAS as correções'
+
+Parameters:
+  EmailFrom:
+    Type: String
+    Description: 'Endereço de e-mail verificado no SES para enviar relatórios'
+    Default: 'no-reply@example.com'
+  
+  EmailTo:
+    Type: String
+    Description: 'Lista de e-mails para receber relatórios (separados por vírgula)'
+    Default: 'admin@example.com'
+  
+  BedrockModelId:
+    Type: String
+    Description: 'ID do modelo Bedrock a ser usado'
+    Default: 'anthropic.claude-3-sonnet-20240229-v1:0'
+  
+  HistoricalDays:
+    Type: Number
+    Description: 'Número de dias de histórico para análise'
+    Default: 30
+    MinValue: 7
+    MaxValue: 90
+  
+  CronSchedule:
+    Type: String
+    Description: 'Expressão cron para agendamento diário (UTC)'
+    Default: 'cron(0 8 * * ? *)'
+
+Resources:
+  # S3 Bucket para armazenar relatórios (COM CRIPTOGRAFIA)
+  FinOpsReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'finops-reports-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldReports
+            Status: Enabled
+            ExpirationInDays: 90
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Project
+          Value: FinOps
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Tabela DynamoDB para tracking de recomendações
+  FinOpsRecommendationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: finops-recommendations
+      AttributeDefinitions:
+        - AttributeName: recommendation_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: recommendation_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: FinOps
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Dead Letter Queue para capturar falhas
+  FinOpsDeadLetterQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: finops-analyzer-dlq
+      MessageRetentionPeriod: 1209600  # 14 dias
+      Tags:
+        - Key: Project
+          Value: FinOps
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # IAM Role para a função Lambda (COM TODAS AS PERMISSÕES)
+  FinOpsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FinOpsLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: FinOpsLambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Cost Explorer
+              - Effect: Allow
+                Action:
+                  - ce:GetCostAndUsage
+                  - ce:GetCostForecast
+                Resource: '*'
+              
+              # Compute Optimizer
+              - Effect: Allow
+                Action:
+                  - compute-optimizer:GetEC2InstanceRecommendations
+                  - compute-optimizer:GetEBSVolumeRecommendations
+                  - compute-optimizer:GetLambdaFunctionRecommendations
+                  - compute-optimizer:GetECSServiceRecommendations
+                Resource: '*'
+              
+              # Trusted Advisor
+              - Effect: Allow
+                Action:
+                  - support:DescribeTrustedAdvisorChecks
+                  - support:DescribeTrustedAdvisorCheckResult
+                Resource: '*'
+              
+              # CloudWatch Metrics
+              - Effect: Allow
+                Action:
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:ListMetrics
+                Resource: '*'
+              
+              # EC2
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeVolumes
+                  - ec2:DescribeSnapshots
+                  - ec2:DescribeRegions
+                Resource: '*'
+              
+              # RDS
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBInstances
+                  - rds:DescribeDBClusters
+                Resource: '*'
+              
+              # ELB
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeTargetGroups
+                Resource: '*'
+              
+              # Lambda
+              - Effect: Allow
+                Action:
+                  - lambda:ListFunctions
+                  - lambda:GetFunction
+                Resource: '*'
+              
+              # S3
+              - Effect: Allow
+                Action:
+                  - s3:ListAllMyBuckets
+                  - s3:GetBucketLocation
+                  - s3:GetBucketTagging
+                Resource: '*'
+              
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub '${FinOpsReportsBucket.Arn}/*'
+              
+              # DynamoDB
+              - Effect: Allow
+                Action:
+                  - dynamodb:ListTables
+                  - dynamodb:DescribeTable
+                Resource: '*'
+              
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                Resource: !GetAtt FinOpsRecommendationsTable.Arn
+              
+              # Bedrock (CRÍTICO!)
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:ListFoundationModels
+                Resource: '*'
+              
+              # SES
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: '*'
+              
+              # SQS (DLQ)
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt FinOpsDeadLetterQueue.Arn
+
+  # Função Lambda (COM TIMEOUT E MEMÓRIA AUMENTADOS)
+  FinOpsAnalyzerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: finops-analyzer-v3
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      Role: !GetAtt FinOpsLambdaRole.Arn
+      Timeout: 600  # 10 minutos (era 300)
+      MemorySize: 1024  # 1GB (era 512MB)
+      DeadLetterConfig:
+        TargetArn: !GetAtt FinOpsDeadLetterQueue.Arn
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref FinOpsReportsBucket
+          DYNAMODB_TABLE_NAME: !Ref FinOpsRecommendationsTable
+          EMAIL_FROM: !Ref EmailFrom
+          EMAIL_TO: !Ref EmailTo
+          BEDROCK_MODEL_ID: !Ref BedrockModelId  # NOVO
+          HISTORICAL_DAYS: !Ref HistoricalDays  # NOVO
+          AWS_REGION: !Ref AWS::Region  # NOVO
+      Code:
+        ZipFile: |
+          # Placeholder - Substitua pelo código da função lambda_finops_v3_FIXED.py
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'body': 'Deploy inicial - Atualize o código da função'
+              }
+      Tags:
+        - Key: Project
+          Value: FinOps
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Permissão para o EventBridge invocar a Lambda
+  FinOpsLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref FinOpsAnalyzerFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt FinOpsScheduleRule.Arn
+
+  # Regra do EventBridge para agendamento diário
+  FinOpsScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: daily-finops-report-trigger
+      Description: 'Aciona a análise de FinOps diariamente'
+      ScheduleExpression: !Ref CronSchedule
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt FinOpsAnalyzerFunction.Arn
+          Id: FinOpsAnalyzerTarget
+
+  # Alarme CloudWatch para erros na Lambda
+  FinOpsLambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: finops-analyzer-errors
+      AlarmDescription: 'Alerta quando a função Lambda FinOps falha'
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FinOpsAnalyzerFunction
+      TreatMissingData: notBreaching
+
+  # Alarme CloudWatch para timeout na Lambda
+  FinOpsLambdaThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: finops-analyzer-throttles
+      AlarmDescription: 'Alerta quando a função Lambda FinOps é throttled'
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FinOpsAnalyzerFunction
+      TreatMissingData: notBreaching
+
+Outputs:
+  S3BucketName:
+    Description: 'Nome do bucket S3 para relatórios'
+    Value: !Ref FinOpsReportsBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-S3Bucket'
+  
+  DynamoDBTableName:
+    Description: 'Nome da tabela DynamoDB para tracking'
+    Value: !Ref FinOpsRecommendationsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-DynamoDBTable'
+  
+  LambdaFunctionName:
+    Description: 'Nome da função Lambda'
+    Value: !Ref FinOpsAnalyzerFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaFunction'
+  
+  LambdaFunctionArn:
+    Description: 'ARN da função Lambda'
+    Value: !GetAtt FinOpsAnalyzerFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaArn'
+  
+  DeadLetterQueueUrl:
+    Description: 'URL da Dead Letter Queue'
+    Value: !Ref FinOpsDeadLetterQueue
+    Export:
+      Name: !Sub '${AWS::StackName}-DLQUrl'
+  
+  ErrorAlarmName:
+    Description: 'Nome do alarme de erros'
+    Value: !Ref FinOpsLambdaErrorAlarm
+    Export:
+      Name: !Sub '${AWS::StackName}-ErrorAlarm'
