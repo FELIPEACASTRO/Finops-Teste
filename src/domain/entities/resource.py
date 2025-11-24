@@ -11,15 +11,123 @@ from decimal import Decimal
 
 
 class ResourceType(Enum):
-    """Tipos de recursos AWS suportados."""
+    """Tipos de recursos AWS suportados - 80+ serviços."""
+    # Compute
     EC2 = "EC2"
-    RDS = "RDS"
-    ELB = "ELB"
     LAMBDA = "Lambda"
-    EBS = "EBS"
+    ECS = "ECS"
+    EKS = "EKS"
+    BATCH = "Batch"
+    LIGHTSAIL = "Lightsail"
+    APPSTREAM = "AppStream"
+    
+    # Storage
     S3 = "S3"
+    EBS = "EBS"
+    EFS = "EFS"
+    FSX = "FSx"
+    GLACIER = "Glacier"
+    STORAGE_GATEWAY = "StorageGateway"
+    BACKUP = "Backup"
+    
+    # Database
+    RDS = "RDS"
     DYNAMODB = "DynamoDB"
     ELASTICACHE = "ElastiCache"
+    REDSHIFT = "Redshift"
+    DOCUMENTDB = "DocumentDB"
+    NEPTUNE = "Neptune"
+    QLDB = "QLDB"
+    TIMESTREAM = "Timestream"
+    DAX = "DAX"
+    MEMORYDB = "MemoryDB"
+    
+    # Networking & Content Delivery
+    ELB = "ELB"
+    ALB = "ALB"
+    NLB = "NLB"
+    CLOUDFRONT = "CloudFront"
+    ROUTE53 = "Route53"
+    VPC = "VPC"
+    DIRECT_CONNECT = "DirectConnect"
+    TRANSIT_GATEWAY = "TransitGateway"
+    PRIVATE_LINK = "PrivateLink"
+    APP_MESH = "AppMesh"
+    
+    # Analytics & Big Data
+    ATHENA = "Athena"
+    EMR = "EMR"
+    KINESIS = "Kinesis"
+    MSK = "MSK"
+    GLUE = "Glue"
+    DATA_PIPELINE = "DataPipeline"
+    LAKE_FORMATION = "LakeFormation"
+    
+    # Application Services
+    SQS = "SQS"
+    SNS = "SNS"
+    SES = "SES"
+    APPSYNC = "AppSync"
+    EVENTBRIDGE = "EventBridge"
+    STEP_FUNCTIONS = "StepFunctions"
+    AMPLIFY = "Amplify"
+    APPCONFIG = "AppConfig"
+    SERVICE_DISCOVERY = "ServiceDiscovery"
+    CONNECTING = "Connecting"
+    
+    # AI/ML
+    SAGEMAKER = "SageMaker"
+    TEXTRACT = "Textract"
+    REKOGNITION = "Rekognition"
+    COMPREHEND = "Comprehend"
+    TRANSLATE = "Translate"
+    POLLY = "Polly"
+    LEX = "Lex"
+    FORECAST = "Forecast"
+    LOOKOUT = "Lookout"
+    BEDROCK = "Bedrock"
+    
+    # Developer Tools & DevOps
+    CODEBUILD = "CodeBuild"
+    CODEPIPELINE = "CodePipeline"
+    CODEDEPLOY = "CodeDeploy"
+    CODECOMMIT = "CodeCommit"
+    CLOUDFORMATION = "CloudFormation"
+    OPSWORKS = "OpsWorks"
+    SYSTEMS_MANAGER = "SystemsManager"
+    CLOUDWATCH = "CloudWatch"
+    X_RAY = "XRay"
+    
+    # Security & Identity
+    IAM = "IAM"
+    COGNITO = "Cognito"
+    SECRETS_MANAGER = "SecretsManager"
+    KMS = "KMS"
+    CLOUDHSM = "CloudHSM"
+    CERTIFICATE_MANAGER = "CertificateManager"
+    WAF = "WAF"
+    SHIELD = "Shield"
+    GUARDDUTY = "GuardDuty"
+    MACIE = "Macie"
+    INSPECTOR = "Inspector"
+    AUDIT_MANAGER = "AuditManager"
+    SECURITY_HUB = "SecurityHub"
+    RESOURCE_ACCESS_MANAGER = "RAM"
+    
+    # Enterprise & End User Computing
+    WORKSPACES = "Workspaces"
+    WORKDOCS = "WorkDocs"
+    APPSTREAM_2 = "AppStream2.0"
+    
+    # Management & Governance
+    CONFIG = "Config"
+    CLOUDTRAIL = "CloudTrail"
+    TRUSTED_ADVISOR = "TrustedAdvisor"
+    CONTROL_TOWER = "ControlTower"
+    
+    # Generic/Unknown
+    GENERIC = "Generic"
+    UNKNOWN = "Unknown"
 
 
 class UsagePattern(Enum):
