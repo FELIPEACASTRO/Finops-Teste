@@ -21,6 +21,8 @@ from ...domain.repositories.resource_repository import (
 )
 from ...domain.services.analysis_service import IAnalysisService
 from ..dto.analysis_dto import AnalysisRequestDTO, AnalysisResponseDTO
+from ...infrastructure.cache.cost_cache import CostDataCache
+from ...infrastructure.monitoring.cloudwatch_metrics import CloudWatchMetrics
 
 
 @dataclass
