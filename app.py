@@ -11,7 +11,8 @@ from src.infrastructure.aws.aws_service_registry import (
     AWS_SERVICE_REGISTRY,
     get_all_categories,
     get_services_by_category,
-    get_service_info
+    get_service_info,
+    get_total_services_count
 )
 from src.domain.entities import ResourceType
 
@@ -45,7 +46,7 @@ def get_services():
         ]
     
     return jsonify({
-        'total_services': len(AWS_SERVICE_REGISTRY),
+        'total_services': get_total_services_count(),
         'total_categories': len(get_all_categories()),
         'categories': categories_data
     })
@@ -73,9 +74,9 @@ def get_stats():
     """Get project statistics"""
     return jsonify({
         'version': '4.0',
-        'total_services': len(AWS_SERVICE_REGISTRY),
+        'total_services': get_total_services_count(),
         'categories': len(get_all_categories()),
-        'tests_passing': 83,
+        'tests_passing': 23,
         'code_coverage': '91%',
         'architecture': 'Clean Architecture + DDD',
         'ai_model': 'Amazon Bedrock (Claude 3 Sonnet)',
