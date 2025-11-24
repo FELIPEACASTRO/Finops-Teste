@@ -4,7 +4,7 @@ Contains business logic for analyzing resources and generating recommendations.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from decimal import Decimal
 
 from ..entities import (
@@ -40,7 +40,7 @@ class IAnalysisService(ABC):
     async def generate_report(
         self, 
         resources: List[AWSResource], 
-        cost_data: CostData,
+        cost_data: Optional[CostData],
         recommendations: List[OptimizationRecommendation]
     ) -> AnalysisReport:
         """Generate a complete analysis report."""

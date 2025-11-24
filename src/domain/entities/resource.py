@@ -177,6 +177,19 @@ class CostData:
             for service, cost in sorted_services
         ]
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            "total_cost_usd": float(self.total_cost_usd),
+            "period_days": self.period_days,
+            "cost_by_service": {
+                service: float(cost)
+                for service, cost in self.cost_by_service.items()
+            },
+            "daily_costs": self.daily_costs,
+            "top_services": self.get_top_services()
+        }
+
 
 @dataclass
 class OptimizationRecommendation:
