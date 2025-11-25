@@ -77,16 +77,24 @@
         "details": "Arquivos: database.py, postgres_resource_repository.py, postgres_cost_repository.py, postgres_optimization_repository.py, postgres_budget_repository.py - Implementados com PostgreSQL, connection pooling, transações, bulk operations e analytics"
       }
     ],
+      {
+        "step": "1.7",
+        "description": "Implementação da Infraestrutura (Config, Logging, Metrics)",
+        "status": "completed",
+        "timestamp": "2024-11-25T22:30:00Z",
+        "details": "Arquivos: logger.py (structured JSON logging), metrics.py (RED/USE methodologies), tracer.py (OpenTelemetry), config.py (centralized configuration) - Sistema completo de observabilidade implementado"
+      }
+    ],
     "current_step": {
-      "step": "1.7",
-      "description": "Implementação da Infraestrutura (Config, Logging, Metrics)",
+      "step": "1.8",
+      "description": "Implementação dos Middlewares (Auth, CORS, Rate Limiting)",
       "status": "in_progress",
-      "started_at": "2024-11-25T22:10:00Z",
+      "started_at": "2024-11-25T22:30:00Z",
       "next_files_to_create": [
-        "backend/internal/observability/logger.py",
-        "backend/internal/observability/metrics.py",
-        "backend/internal/observability/tracer.py",
-        "backend/internal/infra/config.py"
+        "backend/internal/middleware/auth.py",
+        "backend/internal/middleware/rate_limiting.py",
+        "backend/internal/middleware/cors.py",
+        "backend/internal/middleware/request_logging.py"
       ]
     },
     "next_steps": [
@@ -165,7 +173,11 @@
       "backend/internal/repository/postgres_resource_repository.py",
       "backend/internal/repository/postgres_cost_repository.py",
       "backend/internal/repository/postgres_optimization_repository.py",
-      "backend/internal/repository/postgres_budget_repository.py"
+      "backend/internal/repository/postgres_budget_repository.py",
+      "backend/internal/observability/logger.py",
+      "backend/internal/observability/metrics.py",
+      "backend/internal/observability/tracer.py",
+      "backend/internal/infra/config.py"
     ],
     "requirements_analysis": {
       "functional_requirements": [
