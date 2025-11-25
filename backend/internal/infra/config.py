@@ -1,30 +1,32 @@
 """
-Configuration Management System
+Configuration Management for FinOps-Teste
 
-This module provides centralized configuration management for the FinOps application.
-Follows 12-factor app principles with environment-based configuration,
-validation, and type safety.
+This module implements configuration management following the 12-factor app methodology
+and Clean Architecture principles. All configuration is externalized and validated.
 
-Features:
+Key Features:
 - Environment-based configuration
-- Type validation with Pydantic
+- Type safety with Pydantic
 - Secrets management integration
-- Configuration validation at startup
-- Hot reloading support (development)
-- Multi-environment support (dev, staging, prod)
+- FinOps-specific settings
+- Performance tuning parameters
+- Security configuration
+
+Author: Manus AI
+Date: November 25, 2025
 """
 
 import os
+from functools import lru_cache
+from typing import List, Optional, Dict, Any
 from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Union
 
-from pydantic import Field, validator
-from pydantic_settings import BaseSettings
+from pydantic import BaseSettings, Field, validator, AnyHttpUrl
+from pydantic.networks import PostgresDsn
 
 
 class Environment(str, Enum):
-    """Application environments"""
+    """Application environment enumeration."""
     DEVELOPMENT = "development"
     TESTING = "testing"
     STAGING = "staging"
@@ -32,7 +34,7 @@ class Environment(str, Enum):
 
 
 class LogLevel(str, Enum):
-    """Log levels"""
+    """Logging level enumeration."""
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -40,389 +42,306 @@ class LogLevel(str, Enum):
     CRITICAL = "CRITICAL"
 
 
-class DatabaseConfig(BaseSettings):
-    """Database configuration"""
-
-    # Connection settings
-    host: str = Field(default="localhost", env="DB_HOST")
-    port: int = Field(default=5432, env="DB_PORT")
-    database: str = Field(default="finops", env="DB_NAME")
-    username: str = Field(default="finops_user", env="DB_USER")
-    password: str = Field(default="finops_password", env="DB_PASSWORD")
-
-    # Connection pool settings
-    min_connections: int = Field(default=5, env="DB_MIN_CONNECTIONS")
-    max_connections: int = Field(default=20, env="DB_MAX_CONNECTIONS")
-    max_queries: int = Field(default=50000, env="DB_MAX_QUERIES")
-    max_inactive_connection_lifetime: float = Field(default=300.0, env="DB_MAX_INACTIVE_LIFETIME")
-
-    # Performance settings
-    command_timeout: float = Field(default=30.0, env="DB_COMMAND_TIMEOUT")
-
-    # SSL settings
-    ssl_enabled: bool = Field(default=False, env="DB_SSL_ENABLED")
-    ssl_cert_path: Optional[str] = Field(default=None, env="DB_SSL_CERT_PATH")
-    ssl_key_path: Optional[str] = Field(default=None, env="DB_SSL_KEY_PATH")
-    ssl_ca_path: Optional[str] = Field(default=None, env="DB_SSL_CA_PATH")
-
-    @property
-    def connection_url(self) -> str:
-        """Get database connection URL"""
-        return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
-
-    class Config:
-        env_prefix = "DB_"
-        case_sensitive = False
-
-
-class RedisConfig(BaseSettings):
-    """Redis configuration"""
-
-    host: str = Field(default="localhost", env="REDIS_HOST")
-    port: int = Field(default=6379, env="REDIS_PORT")
-    database: int = Field(default=0, env="REDIS_DB")
-    password: Optional[str] = Field(default=None, env="REDIS_PASSWORD")
-
-    # Connection pool settings
-    max_connections: int = Field(default=20, env="REDIS_MAX_CONNECTIONS")
-    connection_timeout: float = Field(default=5.0, env="REDIS_CONNECTION_TIMEOUT")
-
-    # SSL settings
-    ssl_enabled: bool = Field(default=False, env="REDIS_SSL_ENABLED")
-
-    @property
-    def connection_url(self) -> str:
-        """Get Redis connection URL"""
-        auth = f":{self.password}@" if self.password else ""
-        return f"redis://{auth}{self.host}:{self.port}/{self.database}"
-
-    class Config:
-        env_prefix = "REDIS_"
-        case_sensitive = False
-
-
-class SecurityConfig(BaseSettings):
-    """Security configuration"""
-
-    # JWT settings
-    jwt_secret_key: str = Field(default="your-secret-key-change-in-production", env="JWT_SECRET_KEY")
-    jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
-    jwt_expiration_minutes: int = Field(default=30, env="JWT_EXPIRATION_MINUTES")
-    jwt_refresh_expiration_days: int = Field(default=7, env="JWT_REFRESH_EXPIRATION_DAYS")
-
-    # API security
-    api_key_header: str = Field(default="X-API-Key", env="API_KEY_HEADER")
-    rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
-    rate_limit_window_minutes: int = Field(default=1, env="RATE_LIMIT_WINDOW_MINUTES")
-
-    # CORS settings
-    cors_origins: List[str] = Field(default=["*"], env="CORS_ORIGINS")
-    cors_methods: List[str] = Field(default=["GET", "POST", "PUT", "DELETE", "OPTIONS"], env="CORS_METHODS")
-    cors_headers: List[str] = Field(default=["*"], env="CORS_HEADERS")
-
-    # Encryption
-    encryption_key: Optional[str] = Field(default=None, env="ENCRYPTION_KEY")
-
-    @validator('jwt_secret_key')
-    def validate_jwt_secret(cls, v, values):
-        if v == "your-secret-key-change-in-production":
-            env = values.get('environment', Environment.DEVELOPMENT)
-            if env == Environment.PRODUCTION:
-                raise ValueError("JWT secret key must be changed in production")
-        return v
-
-    class Config:
-        env_prefix = "SECURITY_"
-        case_sensitive = False
-
-
-class AWSConfig(BaseSettings):
-    """AWS configuration"""
-
-    # AWS credentials
-    access_key_id: Optional[str] = Field(default=None, env="AWS_ACCESS_KEY_ID")
-    secret_access_key: Optional[str] = Field(default=None, env="AWS_SECRET_ACCESS_KEY")
-    session_token: Optional[str] = Field(default=None, env="AWS_SESSION_TOKEN")
-
-    # AWS settings
-    region: str = Field(default="us-east-1", env="AWS_DEFAULT_REGION")
-    profile: Optional[str] = Field(default=None, env="AWS_PROFILE")
-
-    # Service-specific settings
-    s3_bucket: Optional[str] = Field(default=None, env="AWS_S3_BUCKET")
-    bedrock_model_id: str = Field(default="anthropic.claude-3-sonnet-20240229-v1:0", env="BEDROCK_MODEL_ID")
-
-    # Cost and billing
-    cost_explorer_enabled: bool = Field(default=True, env="AWS_COST_EXPLORER_ENABLED")
-    billing_account_id: Optional[str] = Field(default=None, env="AWS_BILLING_ACCOUNT_ID")
-
-    class Config:
-        env_prefix = "AWS_"
-        case_sensitive = False
-
-
-class MonitoringConfig(BaseSettings):
-    """Monitoring and observability configuration"""
-
-    # Logging
-    log_level: LogLevel = Field(default=LogLevel.INFO, env="LOG_LEVEL")
-    log_format: str = Field(default="json", env="LOG_FORMAT")  # json or text
-    log_file_path: Optional[str] = Field(default=None, env="LOG_FILE_PATH")
-
-    # Metrics
-    enable_metrics: bool = Field(default=True, env="ENABLE_METRICS")
-    metrics_port: int = Field(default=8080, env="METRICS_PORT")
-    prometheus_enabled: bool = Field(default=True, env="PROMETHEUS_ENABLED")
-
-    # Tracing
-    enable_tracing: bool = Field(default=True, env="ENABLE_TRACING")
-    jaeger_endpoint: Optional[str] = Field(default=None, env="JAEGER_ENDPOINT")
-
-    # Health checks
-    health_check_interval: int = Field(default=30, env="HEALTH_CHECK_INTERVAL")
-
-    # External monitoring
-    sentry_dsn: Optional[str] = Field(default=None, env="SENTRY_DSN")
-    datadog_api_key: Optional[str] = Field(default=None, env="DATADOG_API_KEY")
-
-    class Config:
-        env_prefix = "MONITORING_"
-        case_sensitive = False
-
-
-class FinOpsConfig(BaseSettings):
-    """FinOps-specific configuration"""
-
-    # Cost thresholds
-    cost_threshold_warning: float = Field(default=1000.0, env="COST_THRESHOLD_WARNING")
-    cost_threshold_critical: float = Field(default=5000.0, env="COST_THRESHOLD_CRITICAL")
-
-    # Budget settings
-    default_budget_currency: str = Field(default="USD", env="DEFAULT_BUDGET_CURRENCY")
-    budget_alert_thresholds: List[float] = Field(
-        default=[0.8, 0.9, 1.0],
-        env="BUDGET_ALERT_THRESHOLDS"
+class FinOpsSettings(BaseSettings):
+    """FinOps-specific configuration settings."""
+    
+    # Cost optimization settings
+    cost_optimization_enabled: bool = Field(True, description="Enable automated cost optimization")
+    rightsizing_threshold: float = Field(0.7, description="CPU utilization threshold for rightsizing recommendations")
+    waste_detection_enabled: bool = Field(True, description="Enable waste detection algorithms")
+    
+    # Budget and alerting
+    default_budget_threshold: float = Field(0.8, description="Default budget alert threshold (80%)")
+    anomaly_detection_sensitivity: float = Field(0.95, description="Anomaly detection sensitivity (95%)")
+    
+    # Forecasting
+    forecasting_enabled: bool = Field(True, description="Enable cost forecasting")
+    forecasting_horizon_days: int = Field(90, description="Forecasting horizon in days")
+    
+    # Tagging strategy
+    required_tags: List[str] = Field(
+        default=["Owner", "CostCenter", "Project", "Environment"],
+        description="Required tags for all resources"
+    )
+    
+    # Cloud provider settings
+    aws_regions: List[str] = Field(
+        default=["us-east-1", "us-west-2", "eu-west-1"],
+        description="AWS regions to monitor"
+    )
+    azure_regions: List[str] = Field(
+        default=["eastus", "westus2", "westeurope"],
+        description="Azure regions to monitor"
+    )
+    gcp_regions: List[str] = Field(
+        default=["us-central1", "us-west1", "europe-west1"],
+        description="GCP regions to monitor"
     )
 
-    # Optimization settings
-    optimization_confidence_threshold: float = Field(default=0.7, env="OPTIMIZATION_CONFIDENCE_THRESHOLD")
-    min_savings_threshold: float = Field(default=10.0, env="MIN_SAVINGS_THRESHOLD")
 
-    # Data collection
-    cost_collection_interval_hours: int = Field(default=1, env="COST_COLLECTION_INTERVAL_HOURS")
-    metrics_retention_days: int = Field(default=90, env="METRICS_RETENTION_DAYS")
+class DatabaseSettings(BaseSettings):
+    """Database configuration settings."""
+    
+    # Connection settings
+    host: str = Field("localhost", description="Database host")
+    port: int = Field(5432, description="Database port")
+    name: str = Field("finops_teste", description="Database name")
+    username: str = Field("finops_user", description="Database username")
+    password: str = Field("", description="Database password", env="DB_PASSWORD")
+    
+    # Connection pool settings
+    pool_size: int = Field(20, description="Connection pool size")
+    max_overflow: int = Field(30, description="Maximum pool overflow")
+    pool_timeout: int = Field(30, description="Pool timeout in seconds")
+    pool_recycle: int = Field(3600, description="Pool recycle time in seconds")
+    
+    # Performance settings
+    echo: bool = Field(False, description="Echo SQL queries")
+    echo_pool: bool = Field(False, description="Echo pool events")
+    
+    @property
+    def url(self) -> str:
+        """Generate database URL."""
+        return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.name}"
+    
+    @property
+    def async_url(self) -> str:
+        """Generate async database URL."""
+        return f"postgresql+asyncpg://{self.username}:{self.password}@{self.host}:{self.port}/{self.name}"
 
-    # ML/AI settings
-    enable_ml_recommendations: bool = Field(default=True, env="ENABLE_ML_RECOMMENDATIONS")
-    ml_model_update_interval_hours: int = Field(default=24, env="ML_MODEL_UPDATE_INTERVAL_HOURS")
 
-    class Config:
-        env_prefix = "FINOPS_"
-        case_sensitive = False
+class RedisSettings(BaseSettings):
+    """Redis configuration settings."""
+    
+    host: str = Field("localhost", description="Redis host")
+    port: int = Field(6379, description="Redis port")
+    password: str = Field("", description="Redis password", env="REDIS_PASSWORD")
+    db: int = Field(0, description="Redis database number")
+    
+    # Connection pool settings
+    max_connections: int = Field(100, description="Maximum Redis connections")
+    retry_on_timeout: bool = Field(True, description="Retry on timeout")
+    socket_timeout: int = Field(5, description="Socket timeout in seconds")
+    socket_connect_timeout: int = Field(5, description="Socket connect timeout")
+    
+    # Cache settings
+    default_ttl: int = Field(3600, description="Default TTL in seconds")
+    session_ttl: int = Field(86400, description="Session TTL in seconds")
+    
+    @property
+    def url(self) -> str:
+        """Generate Redis URL."""
+        auth = f":{self.password}@" if self.password else ""
+        return f"redis://{auth}{self.host}:{self.port}/{self.db}"
 
 
-class APIConfig(BaseSettings):
-    """API configuration"""
+class SecuritySettings(BaseSettings):
+    """Security configuration settings."""
+    
+    # JWT settings
+    jwt_secret_key: str = Field("", description="JWT secret key", env="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field("HS256", description="JWT algorithm")
+    jwt_access_token_expire_minutes: int = Field(30, description="Access token expiration")
+    jwt_refresh_token_expire_days: int = Field(7, description="Refresh token expiration")
+    
+    # Password settings
+    password_min_length: int = Field(8, description="Minimum password length")
+    password_require_uppercase: bool = Field(True, description="Require uppercase letters")
+    password_require_lowercase: bool = Field(True, description="Require lowercase letters")
+    password_require_numbers: bool = Field(True, description="Require numbers")
+    password_require_special: bool = Field(True, description="Require special characters")
+    
+    # Rate limiting
+    rate_limit_requests: int = Field(1000, description="Requests per minute per IP")
+    rate_limit_window: int = Field(60, description="Rate limit window in seconds")
+    
+    # CORS settings
+    cors_origins: List[str] = Field(
+        default=["http://localhost:3000", "http://localhost:8080"],
+        description="Allowed CORS origins"
+    )
+    
+    # API key settings
+    api_key_header: str = Field("X-API-Key", description="API key header name")
+    api_key_length: int = Field(32, description="API key length")
+    
+    @validator("jwt_secret_key")
+    def validate_jwt_secret(cls, v: str) -> str:
+        """Validate JWT secret key."""
+        if not v:
+            raise ValueError("JWT_SECRET_KEY environment variable is required")
+        if len(v) < 32:
+            raise ValueError("JWT secret key must be at least 32 characters long")
+        return v
 
+
+class MonitoringSettings(BaseSettings):
+    """Monitoring and observability settings."""
+    
+    # Metrics
+    metrics_enabled: bool = Field(True, description="Enable metrics collection")
+    metrics_port: int = Field(9090, description="Metrics server port")
+    
+    # Tracing
+    tracing_enabled: bool = Field(True, description="Enable distributed tracing")
+    jaeger_endpoint: str = Field("http://localhost:14268/api/traces", description="Jaeger endpoint")
+    trace_sample_rate: float = Field(0.1, description="Trace sampling rate")
+    
+    # Logging
+    log_level: LogLevel = Field(LogLevel.INFO, description="Logging level")
+    log_format: str = Field("json", description="Log format (json|text)")
+    log_file: Optional[str] = Field(None, description="Log file path")
+    
+    # Health checks
+    health_check_interval: int = Field(30, description="Health check interval in seconds")
+    health_check_timeout: int = Field(5, description="Health check timeout in seconds")
+    
+    # Alerting
+    alerting_enabled: bool = Field(True, description="Enable alerting")
+    slack_webhook_url: str = Field("", description="Slack webhook URL", env="SLACK_WEBHOOK_URL")
+    email_alerts_enabled: bool = Field(True, description="Enable email alerts")
+
+
+class PerformanceSettings(BaseSettings):
+    """Performance optimization settings."""
+    
     # Server settings
-    host: str = Field(default="0.0.0.0", env="API_HOST")
-    port: int = Field(default=8000, env="API_PORT")
-    workers: int = Field(default=1, env="API_WORKERS")
+    workers: int = Field(4, description="Number of worker processes")
+    worker_connections: int = Field(1000, description="Worker connections")
+    max_requests: int = Field(1000000, description="Max requests per worker")
+    max_requests_jitter: int = Field(100, description="Max requests jitter")
+    
+    # Timeouts
+    request_timeout: int = Field(30, description="Request timeout in seconds")
+    keep_alive_timeout: int = Field(5, description="Keep-alive timeout")
+    graceful_timeout: int = Field(30, description="Graceful shutdown timeout")
+    
+    # Caching
+    cache_enabled: bool = Field(True, description="Enable caching")
+    cache_default_ttl: int = Field(3600, description="Default cache TTL")
+    cache_max_size: int = Field(1000, description="Max cache size")
+    
+    # Connection limits
+    max_connections: int = Field(10000, description="Maximum concurrent connections")
+    backlog: int = Field(2048, description="TCP backlog size")
+    
+    # Performance targets (SLOs)
+    target_p95_latency_ms: int = Field(200, description="Target P95 latency in ms")
+    target_throughput_tps: int = Field(2000, description="Target throughput in TPS")
+    target_availability: float = Field(0.999, description="Target availability (99.9%)")
 
-    # API versioning
-    api_version: str = Field(default="v1", env="API_VERSION")
-    api_prefix: str = Field(default="/api", env="API_PREFIX")
 
-    # Documentation
-    docs_enabled: bool = Field(default=True, env="API_DOCS_ENABLED")
-    docs_url: str = Field(default="/docs", env="API_DOCS_URL")
-    redoc_url: str = Field(default="/redoc", env="API_REDOC_URL")
-
-    # Request/Response settings
-    max_request_size: int = Field(default=10 * 1024 * 1024, env="MAX_REQUEST_SIZE")  # 10MB
-    request_timeout: int = Field(default=30, env="REQUEST_TIMEOUT")
-
-    # Pagination
-    default_page_size: int = Field(default=50, env="DEFAULT_PAGE_SIZE")
-    max_page_size: int = Field(default=1000, env="MAX_PAGE_SIZE")
-
-    @validator('workers')
-    def validate_workers(cls, v):
-        if v < 1:
-            raise ValueError("Workers must be at least 1")
+class Settings(BaseSettings):
+    """
+    Main application settings combining all configuration sections.
+    
+    This follows the composition pattern to organize related settings
+    while maintaining a single configuration interface.
+    """
+    
+    # Application settings
+    app_name: str = Field("FinOps-Teste", description="Application name")
+    app_version: str = Field("1.0.0", description="Application version")
+    environment: Environment = Field(Environment.DEVELOPMENT, description="Application environment")
+    debug: bool = Field(False, description="Debug mode")
+    
+    # Server settings
+    host: str = Field("0.0.0.0", description="Server host")
+    port: int = Field(8000, description="Server port")
+    
+    # Component settings
+    finops: FinOpsSettings = Field(default_factory=FinOpsSettings)
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
+    redis: RedisSettings = Field(default_factory=RedisSettings)
+    security: SecuritySettings = Field(default_factory=SecuritySettings)
+    monitoring: MonitoringSettings = Field(default_factory=MonitoringSettings)
+    performance: PerformanceSettings = Field(default_factory=PerformanceSettings)
+    
+    # Computed properties
+    @property
+    def database_url(self) -> str:
+        """Get database URL."""
+        return self.database.url
+    
+    @property
+    def async_database_url(self) -> str:
+        """Get async database URL."""
+        return self.database.async_url
+    
+    @property
+    def redis_url(self) -> str:
+        """Get Redis URL."""
+        return self.redis.url
+    
+    @property
+    def cors_origins(self) -> List[str]:
+        """Get CORS origins."""
+        return self.security.cors_origins
+    
+    @property
+    def workers(self) -> int:
+        """Get number of workers (production only)."""
+        if self.environment == Environment.PRODUCTION:
+            return self.performance.workers
+        return 1
+    
+    @validator("environment", pre=True)
+    def validate_environment(cls, v: str) -> Environment:
+        """Validate and convert environment string."""
+        if isinstance(v, str):
+            return Environment(v.lower())
         return v
-
+    
     class Config:
-        env_prefix = "API_"
-        case_sensitive = False
-
-
-class AppConfig(BaseSettings):
-    """Main application configuration"""
-
-    # Application metadata
-    app_name: str = Field(default="FinOps-Teste", env="APP_NAME")
-    app_version: str = Field(default="1.0.0", env="APP_VERSION")
-    app_description: str = Field(default="Enterprise FinOps Platform", env="APP_DESCRIPTION")
-
-    # Environment
-    environment: Environment = Field(default=Environment.DEVELOPMENT, env="ENVIRONMENT")
-    debug: bool = Field(default=False, env="DEBUG")
-    testing: bool = Field(default=False, env="TESTING")
-
-    # Timezone
-    timezone: str = Field(default="UTC", env="TIMEZONE")
-
-    # Feature flags
-    enable_cost_analysis: bool = Field(default=True, env="ENABLE_COST_ANALYSIS")
-    enable_optimization: bool = Field(default=True, env="ENABLE_OPTIMIZATION")
-    enable_budget_management: bool = Field(default=True, env="ENABLE_BUDGET_MANAGEMENT")
-    enable_reporting: bool = Field(default=True, env="ENABLE_REPORTING")
-
-    # External integrations
-    enable_webhooks: bool = Field(default=True, env="ENABLE_WEBHOOKS")
-    webhook_timeout: int = Field(default=10, env="WEBHOOK_TIMEOUT")
-
-    # Background tasks
-    enable_background_tasks: bool = Field(default=True, env="ENABLE_BACKGROUND_TASKS")
-    task_queue_url: Optional[str] = Field(default=None, env="TASK_QUEUE_URL")
-
-    @validator('environment')
-    def validate_environment(cls, v):
-        if v == Environment.PRODUCTION:
-            # Additional production validations can be added here
-            pass
-        return v
-
-    class Config:
+        """Pydantic configuration."""
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        # Allow environment variables to override nested settings
+        env_nested_delimiter = "__"
+        
+        # Example: DATABASE__HOST=localhost sets database.host
+        # Example: FINOPS__COST_OPTIMIZATION_ENABLED=false sets finops.cost_optimization_enabled
 
 
-class Settings:
-    """Main settings container"""
-
-    def __init__(self, env_file: Optional[str] = None):
-        # Load environment file if specified
-        if env_file and Path(env_file).exists():
-            os.environ.setdefault("ENV_FILE", env_file)
-
-        # Initialize all configuration sections
-        self.app = AppConfig()
-        self.database = DatabaseConfig()
-        self.redis = RedisConfig()
-        self.security = SecurityConfig()
-        self.aws = AWSConfig()
-        self.monitoring = MonitoringConfig()
-        self.finops = FinOpsConfig()
-        self.api = APIConfig()
-
-        # Validate configuration
-        self._validate_configuration()
-
-    def _validate_configuration(self):
-        """Validate configuration consistency"""
-
-        # Production-specific validations
-        if self.app.environment == Environment.PRODUCTION:
-            if self.app.debug:
-                raise ValueError("Debug mode cannot be enabled in production")
-
-            if self.security.jwt_secret_key == "your-secret-key-change-in-production":
-                raise ValueError("JWT secret key must be changed in production")
-
-            if not self.monitoring.sentry_dsn:
-                print("Warning: Sentry DSN not configured for production")
-
-        # Database validation
-        if self.app.environment == Environment.PRODUCTION and not self.database.ssl_enabled:
-            print("Warning: SSL not enabled for database in production")
-
-        # AWS validation
-        if self.finops.enable_ml_recommendations and not self.aws.bedrock_model_id:
-            raise ValueError("Bedrock model ID required when ML recommendations are enabled")
-
-    def get_database_url(self) -> str:
-        """Get database connection URL"""
-        return self.database.connection_url
-
-    def get_redis_url(self) -> str:
-        """Get Redis connection URL"""
-        return self.redis.connection_url
-
-    def is_development(self) -> bool:
-        """Check if running in development mode"""
-        return self.app.environment == Environment.DEVELOPMENT
-
-    def is_production(self) -> bool:
-        """Check if running in production mode"""
-        return self.app.environment == Environment.PRODUCTION
-
-    def is_testing(self) -> bool:
-        """Check if running in testing mode"""
-        return self.app.environment == Environment.TESTING or self.app.testing
-
-    def get_cors_config(self) -> Dict[str, Union[List[str], bool]]:
-        """Get CORS configuration for FastAPI"""
-        return {
-            "allow_origins": self.security.cors_origins,
-            "allow_methods": self.security.cors_methods,
-            "allow_headers": self.security.cors_headers,
-            "allow_credentials": True
-        }
-
-    def to_dict(self) -> Dict[str, Dict]:
-        """Convert settings to dictionary (excluding sensitive data)"""
-        return {
-            "app": self.app.dict(exclude={"debug"}),
-            "database": self.database.dict(exclude={"password"}),
-            "redis": self.redis.dict(exclude={"password"}),
-            "security": self.security.dict(exclude={"jwt_secret_key", "encryption_key"}),
-            "aws": self.aws.dict(exclude={"access_key_id", "secret_access_key", "session_token"}),
-            "monitoring": self.monitoring.dict(exclude={"sentry_dsn", "datadog_api_key"}),
-            "finops": self.finops.dict(),
-            "api": self.api.dict()
-        }
+@lru_cache()
+def get_settings() -> Settings:
+    """
+    Get application settings with caching.
+    
+    Uses LRU cache to ensure settings are loaded only once per process.
+    This is safe because settings don't change during runtime.
+    
+    Returns:
+        Settings: Application configuration
+    """
+    return Settings()
 
 
-# Global settings instance
-_settings: Optional[Settings] = None
-
-
-def get_settings(env_file: Optional[str] = None) -> Settings:
-    """Get global settings instance"""
-    global _settings
-
-    if _settings is None:
-        _settings = Settings(env_file)
-
-    return _settings
-
-
-def reload_settings(env_file: Optional[str] = None) -> Settings:
-    """Reload settings (useful for development)"""
-    global _settings
-    _settings = Settings(env_file)
-    return _settings
-
-
-# Convenience functions for common configurations
-def get_database_config() -> DatabaseConfig:
-    """Get database configuration"""
-    return get_settings().database
-
-
-def get_security_config() -> SecurityConfig:
-    """Get security configuration"""
-    return get_settings().security
-
-
-def get_aws_config() -> AWSConfig:
-    """Get AWS configuration"""
-    return get_settings().aws
-
-
-def get_finops_config() -> FinOpsConfig:
-    """Get FinOps configuration"""
-    return get_settings().finops
+def get_test_settings() -> Settings:
+    """
+    Get test-specific settings.
+    
+    Returns settings configured for testing environment with
+    in-memory databases and disabled external services.
+    
+    Returns:
+        Settings: Test configuration
+    """
+    return Settings(
+        environment=Environment.TESTING,
+        debug=True,
+        database=DatabaseSettings(
+            name="finops_teste_test",
+            host="localhost",
+            port=5432
+        ),
+        redis=RedisSettings(
+            db=1  # Use different Redis DB for tests
+        ),
+        monitoring=MonitoringSettings(
+            metrics_enabled=False,
+            tracing_enabled=False,
+            alerting_enabled=False
+        )
+    )
