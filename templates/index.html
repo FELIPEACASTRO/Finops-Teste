@@ -240,83 +240,6 @@
             </div>
         </section>
 
-        <section id="services" class="section services-section" aria-labelledby="services-title">
-            <div class="section-container">
-                <header class="section-header">
-                    <span class="section-tag">Cobertura Completa</span>
-                    <h2 id="services-title" class="section-title">268+ Serviços AWS Suportados</h2>
-                    <p class="section-subtitle">Análise abrangente de todos os serviços em 24 categorias</p>
-                </header>
-
-                <div class="services-filter" role="tablist" aria-label="Filtrar serviços por categoria">
-                    <button class="filter-btn active" role="tab" aria-selected="true" data-category="all" id="tab-all" aria-controls="services-panel">
-                        <span>Todos</span>
-                        <span class="filter-count" id="countAll">268</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="Compute" id="tab-compute" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <rect x="4" y="4" width="16" height="16" rx="2"/>
-                            <rect x="9" y="9" width="6" height="6"/>
-                        </svg>
-                        <span>Compute</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="Storage" id="tab-storage" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                        </svg>
-                        <span>Storage</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="Database" id="tab-database" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                            <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
-                        </svg>
-                        <span>Database</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="Networking & Content Delivery" id="tab-networking" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="2" y1="12" x2="22" y2="12"/>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                        <span>Networking</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="AI & Machine Learning" id="tab-ai" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/>
-                            <path d="M6 10v4a6 6 0 0 0 12 0v-4"/>
-                        </svg>
-                        <span>AI/ML</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="Security & Identity" id="tab-security" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                        <span>Security</span>
-                    </button>
-                    <button class="filter-btn" role="tab" aria-selected="false" data-category="Analytics & Big Data" id="tab-analytics" aria-controls="services-panel">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <path d="M3 3v18h18"/>
-                            <path d="M18 17V9"/>
-                            <path d="M13 17V5"/>
-                            <path d="M8 17v-3"/>
-                        </svg>
-                        <span>Analytics</span>
-                    </button>
-                </div>
-
-                <div id="services-panel" class="services-container" role="tabpanel" aria-labelledby="tab-all" aria-live="polite">
-                    <div class="loading-state">
-                        <div class="loading-spinner" role="status" aria-label="Carregando"></div>
-                        <span>Carregando serviços...</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section id="analysis" class="section analysis-section" aria-labelledby="analysis-title">
             <div class="section-container">
                 <header class="section-header">
@@ -417,46 +340,32 @@
                             <span class="layer-item">AWS SDK</span>
                             <span class="layer-item">Bedrock AI</span>
                             <span class="layer-item">Resilience</span>
-                            <span class="layer-item">Cache</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="tech-stack" role="list" aria-label="Tecnologias utilizadas">
-                    <span class="tech-item" role="listitem">Python 3.11</span>
-                    <span class="tech-item" role="listitem">Boto3</span>
-                    <span class="tech-item" role="listitem">Claude 3 Sonnet</span>
-                    <span class="tech-item" role="listitem">pytest</span>
-                    <span class="tech-item" role="listitem">Flask</span>
-                    <span class="tech-item" role="listitem">CloudWatch</span>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer class="footer" role="contentinfo">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <div class="brand-icon small" aria-hidden="true">
+    <!-- Modal de Recomendação Detalhada -->
+    <div id="recommendationModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-backdrop" onclick="closeRecommendationModal()"></div>
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Detalhes da Recomendação</h2>
+                <button class="modal-close" onclick="closeRecommendationModal()" aria-label="Fechar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                        <path d="M2 17l10 5 10-5"/>
-                        <path d="M2 12l10 5 10-5"/>
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
-                </div>
-                <span>FinOps<span class="brand-highlight">AI</span> v4.0</span>
+                </button>
             </div>
-            <div class="footer-info">
-                <span>Clean Architecture + Domain-Driven Design</span>
-                <span class="separator" aria-hidden="true">|</span>
-                <span>Production Ready</span>
-            </div>
-            <div class="footer-status" role="status">
-                <span class="status-dot" aria-hidden="true"></span>
-                <span>Sistema Operacional</span>
+            
+            <div class="modal-body" id="modalBody">
+                <!-- Conteúdo preenchido dinamicamente -->
             </div>
         </div>
-    </footer>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>

@@ -112,6 +112,16 @@ def demo_analysis():
                     'details': 'Downsize from t3a.xlarge to t3a.large',
                     'reasoning': 'CPU avg 18.5%, p95 28.7% - 75% capacity unused'
                 },
+                'didactic_explanation': 'Sua instância EC2 está usando muito menos memória e poder de processamento do que o disponível. Isso significa que você está pagando por recursos que não está usando. Ao reduzir o tamanho, você mantém a mesma performance mas reduz significativamente os custos.',
+                'technical_steps': [
+                    'Crie um snapshot da AMI atual para backup seguro',
+                    'Pause a aplicação ou ative load balancer para direcionar tráfego',
+                    'Interrompa a instância atual',
+                    'Inicie uma nova instância t3a.large a partir do mesmo snapshot',
+                    'Configure os mesmos grupos de segurança e subnets',
+                    'Teste a aplicação completamente antes de remover a instância antiga',
+                    'Após validação, remova a instância t3a.xlarge para parar os custos'
+                ],
                 'savings': {
                     'monthly_usd': 54.74,
                     'annual_usd': 656.88,
@@ -130,6 +140,16 @@ def demo_analysis():
                     'details': 'Purchase 1-year Reserved Instance',
                     'reasoning': 'Database running 24/7 for 6+ months'
                 },
+                'didactic_explanation': 'Seu banco de dados está sempre ligado e não varia em uso. Isso é o cenário perfeito para Reserved Instances. É como assinar um plano anual ao invés de pagar por hora - você economiza muito pagando adiantado por um período que você já sabe que vai usar.',
+                'technical_steps': [
+                    'Verifique no console RDS que a instância é elegível para Reserved Instance',
+                    'Acesse AWS Cost Explorer para confirmar o histórico de uso contínuo',
+                    'Vá até o console de Compra de Reserved Instances no RDS',
+                    'Selecione: Tipo db.m5.large, região us-east-1, período 1 ano',
+                    'Escolha pagamento full upfront para máxima economia',
+                    'Revise a estimativa e confirme a compra',
+                    'O desconto será aplicado automaticamente nas próximas faturas'
+                ],
                 'savings': {
                     'monthly_usd': 89.32,
                     'annual_usd': 1071.84,
@@ -148,6 +168,17 @@ def demo_analysis():
                     'details': 'Move to S3 Intelligent-Tiering',
                     'reasoning': '67% of objects not accessed in 90+ days'
                 },
+                'didactic_explanation': 'A maioria dos seus arquivos não é acessada regularmente. Você está pagando preço premium (Standard) mesmo quando os dados não são usados. S3 Intelligent-Tiering move automaticamente dados antigos para classes mais baratas, mantendo os frequentes rápidos. É como ter dois preços automáticos baseados no uso real.',
+                'technical_steps': [
+                    'Acesse o console do S3 e selecione o bucket my-archive-bucket',
+                    'Vá em "Management" → "Lifecycle rules"',
+                    'Clique em "Create lifecycle rule"',
+                    'Nome: "archive-old-files"',
+                    'Aplique para todos os objetos (ou selecione prefixo específico)',
+                    'Em "Transitions": selecione "Transition to Intelligent-Tiering" em 30 dias',
+                    'Salve a regra',
+                    'Monitore custo em Cloud Watch Metrics após 60 dias'
+                ],
                 'savings': {
                     'monthly_usd': 37.50,
                     'annual_usd': 450.00,

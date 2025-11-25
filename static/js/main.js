@@ -301,26 +301,36 @@ async function runDemoAnalysis() {
                 </div>
             </div>
             
-            <h4 id="recommendations-heading" style="margin-bottom: 1rem; color: var(--text-primary);">Top Recomendações</h4>
+            <h4 id="recommendations-heading" style="margin-bottom: 1rem; color: var(--text-primary);">Top Recomendações (Clique para detalhes)</h4>
             <div class="recommendations-list" role="list" aria-labelledby="recommendations-heading">
-                ${data.top_recommendations.map(rec => `
+                ${data.top_recommendations.map((rec, idx) => `
                     <article class="recommendation-card ${rec.priority}" role="listitem">
                         <div class="rec-header">
-                            <span class="rec-type">${escapeHtml(rec.resource_type)}: ${escapeHtml(rec.resource_id)}</span>
-                            <span class="rec-priority ${rec.priority}" aria-label="Prioridade ${rec.priority}">${rec.priority}</span>
+                            <div>
+                                <span class="rec-type">${escapeHtml(rec.resource_type)}: ${escapeHtml(rec.resource_id)}</span>
+                                <span class="rec-priority ${rec.priority}" aria-label="Prioridade ${rec.priority}">${rec.priority}</span>
+                            </div>
+                            <span class="rec-savings highlight" aria-label="Economia de ${rec.savings.percentage} por cento">
+                                -${rec.savings.percentage}% ($${rec.savings.monthly_usd.toFixed(2)}/mês)
+                            </span>
                         </div>
-                        <p class="rec-details">
-                            <strong>Atual:</strong> ${escapeHtml(rec.current_config)}<br>
-                            <strong>Recomendação:</strong> ${escapeHtml(rec.recommendation.details)}<br>
-                            <strong>Motivo:</strong> ${escapeHtml(rec.recommendation.reasoning)}
+                        <p class="rec-summary">
+                            <strong>${escapeHtml(rec.recommendation.details)}</strong><br>
+                            <em style="color: var(--text-secondary); font-size: 0.9em;">${escapeHtml(rec.recommendation.reasoning)}</em>
                         </p>
-                        <span class="rec-savings" aria-label="Economia de ${rec.savings.percentage} por cento">
-                            Economia: $${rec.savings.monthly_usd.toFixed(2)}/mês (${rec.savings.percentage}%)
-                        </span>
+                        <button class="btn-details" onclick="showRecommendationDetails(${idx})" aria-label="Ver detalhes da recomendação para ${rec.resource_type}">
+                            Ver Detalhes Completos
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </button>
                     </article>
                 `).join('')}
             </div>
         `;
+        
+        // Armazenar dados para modal
+        currentRecommendations = data.top_recommendations;
         
         announceToScreenReader(`Análise concluída. Economia mensal potencial de ${data.summary.total_monthly_savings_usd.toFixed(2)} dólares.`);
         
@@ -348,3 +358,116 @@ async function runDemoAnalysis() {
         <span>Executar Análise</span>
     `;
 }
+
+// Armazenar dados das recomendações para o modal
+let currentRecommendations = [];
+
+function showRecommendationDetails(index) {
+    const rec = currentRecommendations[index];
+    if (!rec) return;
+    
+    const modal = document.getElementById('recommendationModal');
+    const modalBody = document.getElementById('modalBody');
+    
+    const priorityColors = {
+        'high': '#dc2626',
+        'medium': '#ca8a04',
+        'low': '#059669'
+    };
+    
+    modalBody.innerHTML = `
+        <div class="recommendation-detail">
+            <div class="rec-detail-header">
+                <div>
+                    <h3>${escapeHtml(rec.resource_type)}</h3>
+                    <p class="rec-resource-id">Recurso: ${escapeHtml(rec.resource_id)}</p>
+                    <p class="rec-region">Região: ${escapeHtml(rec.region)}</p>
+                </div>
+                <div class="rec-detail-badge" style="background: ${priorityColors[rec.priority] || '#6366f1'}; color: white;">
+                    <span>${rec.priority.toUpperCase()}</span>
+                </div>
+            </div>
+            
+            <div class="rec-detail-section">
+                <h4>💡 Por Que Isso é Importante?</h4>
+                <p class="didactic-text">${escapeHtml(rec.didactic_explanation)}</p>
+            </div>
+            
+            <div class="rec-detail-section">
+                <h4>📊 Informações Atuais</h4>
+                <div class="config-box">
+                    <strong>Configuração Atual:</strong> ${escapeHtml(rec.current_config)}
+                </div>
+            </div>
+            
+            <div class="rec-detail-section">
+                <h4>🎯 Recomendação</h4>
+                <div class="recommendation-box">
+                    <strong>Ação Recomendada:</strong> ${escapeHtml(rec.recommendation.details)}<br>
+                    <em>Motivo técnico:</em> ${escapeHtml(rec.recommendation.reasoning)}
+                </div>
+            </div>
+            
+            <div class="rec-detail-section">
+                <h4>🔧 Passos Técnicos Para Implementar</h4>
+                <ol class="technical-steps">
+                    ${rec.technical_steps.map((step, idx) => `
+                        <li>
+                            <span class="step-number">${idx + 1}</span>
+                            <span class="step-text">${escapeHtml(step)}</span>
+                        </li>
+                    `).join('')}
+                </ol>
+            </div>
+            
+            <div class="rec-detail-section savings-section">
+                <h4>💰 Impacto Financeiro</h4>
+                <div class="savings-grid">
+                    <div class="savings-item">
+                        <div class="savings-value">\$${rec.savings.monthly_usd.toFixed(2)}</div>
+                        <div class="savings-label">Economia Mensal</div>
+                    </div>
+                    <div class="savings-item">
+                        <div class="savings-value">\$${rec.savings.annual_usd.toFixed(2)}</div>
+                        <div class="savings-label">Economia Anual</div>
+                    </div>
+                    <div class="savings-item">
+                        <div class="savings-value">${rec.savings.percentage}%</div>
+                        <div class="savings-label">Redução de Custo</div>
+                    </div>
+                    <div class="savings-item">
+                        <div class="savings-value ${rec.risk_level === 'low' ? 'low-risk' : 'medium-risk'}">${rec.risk_level.toUpperCase()}</div>
+                        <div class="savings-label">Nível de Risco</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rec-detail-actions">
+                <p style="color: var(--text-secondary); font-size: 0.9em;">
+                    ℹ️ Recomendamos revisar estes passos com seu time de DevOps/Infraestrutura antes de implementar.
+                </p>
+                <button class="btn-close-modal" onclick="closeRecommendationModal()">Entendi, Fechar</button>
+            </div>
+        </div>
+    `;
+    
+    modal.setAttribute('aria-hidden', 'false');
+    modal.style.display = 'flex';
+    announceToScreenReader(`Abrindo detalhes da recomendação para ${rec.resource_type}`);
+}
+
+function closeRecommendationModal() {
+    const modal = document.getElementById('recommendationModal');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.style.display = 'none';
+}
+
+// Fechar modal com ESC
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('recommendationModal');
+        if (modal && modal.getAttribute('aria-hidden') === 'false') {
+            closeRecommendationModal();
+        }
+    }
+});
