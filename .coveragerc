@@ -1,5 +1,5 @@
 [run]
-source = src
+source = backend
 omit = 
     */tests/*
     */test_*.py
@@ -10,6 +10,7 @@ omit =
     */conftest.py
     */demo.py
     */app.py
+    */src_backup_*/*
 
 [report]
 precision = 2

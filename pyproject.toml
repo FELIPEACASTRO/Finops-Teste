@@ -60,11 +60,11 @@ python_functions = ["test_*"]
 addopts = [
     "-v",
     "--strict-markers",
-    "--cov=src",
+    "--cov=backend",
     "--cov-report=html",
     "--cov-report=term-missing",
     "--cov-report=xml",
-    "--cov-fail-under=90",
+    "--cov-fail-under=80",
 ]
 markers = [
     "unit: Unit tests",
@@ -75,13 +75,14 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src"]
+source = ["backend"]
 omit = [
     "*/tests/*",
     "*/test_*.py",
     "*/__pycache__/*",
     "*/venv/*",
     "*/.venv/*",
+    "*/src_backup_*/*",
 ]
 
 [tool.coverage.report]

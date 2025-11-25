@@ -32,33 +32,33 @@ test-e2e:
 	pytest tests/e2e/ -v -m e2e
 
 test-coverage:
-	pytest tests/ --cov=src --cov-report=html --cov-report=term-missing
+	pytest tests/ --cov=backend --cov-report=html --cov-report=term-missing
 
 lint:
-	ruff check src/ tests/
-	flake8 src/ tests/ --max-line-length=120
+	ruff check backend/ tests/
+	flake8 backend/ tests/ --max-line-length=120
 
 format:
-	black src/ tests/
-	isort src/ tests/
-	ruff check --fix src/ tests/
+	black backend/ tests/
+	isort backend/ tests/
+	ruff check --fix backend/ tests/
 
 type-check:
-	mypy src/
+	mypy backend/
 
 security:
-	bandit -r src/ -c pyproject.toml
+	bandit -r backend/ -c pyproject.toml
 
 pre-commit:
 	pre-commit install
 	pre-commit run --all-files
 
 coverage:
-	pytest tests/ --cov=src --cov-report=html --cov-report=term-missing
+	pytest tests/ --cov=backend --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/index.html"
 
 mutation-test:
-	mutmut run --paths-to-mutate=src/
+	mutmut run --paths-to-mutate=backend/
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
