@@ -1,0 +1,506 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS FinOps Analyzer v5.0 - Complete Infrastructure with API Gateway, Step Functions, and Multi-Account Support'
+
+Parameters:
+  SenderEmail:
+    Type: String
+    Description: Email address for sending FinOps reports (must be verified in SES)
+    Default: finops@example.com
+  
+  RecipientEmail:
+    Type: String
+    Description: Email address to receive FinOps reports
+    Default: team@example.com
+  
+  BedrockModelId:
+    Type: String
+    Description: Amazon Bedrock model ID to use for analysis
+    Default: anthropic.claude-3-sonnet-20240229-v1:0
+    AllowedValues:
+      - anthropic.claude-3-sonnet-20240229-v1:0
+      - anthropic.claude-3-haiku-20240307-v1:0
+      - anthropic.claude-3-opus-20240229-v1:0
+  
+  HistoricalDays:
+    Type: Number
+    Description: Number of days of historical data to analyze
+    Default: 30
+    MinValue: 7
+    MaxValue: 90
+  
+  AnalysisSchedule:
+    Type: String
+    Description: Cron expression for analysis schedule (default: daily at 8 AM UTC)
+    Default: cron(0 8 * * ? *)
+
+Resources:
+  
+  # ============================================================================
+  # S3 Bucket for Reports
+  # ============================================================================
+  
+  ReportBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'finops-reports-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldReports
+            Status: Enabled
+            ExpirationInDays: 90
+            NoncurrentVersionExpirationInDays: 30
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Project
+          Value: FinOps
+        - Key: ManagedBy
+          Value: CloudFormation
+  
+  # ============================================================================
+  # DynamoDB Table for Recommendations History
+  # ============================================================================
+  
+  RecommendationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: finops-recommendations
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: recommendation_id
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+        - AttributeName: resource_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: recommendation_id
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: resource-index
+          KeySchema:
+            - AttributeName: resource_id
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: FinOps
+  
+  # ============================================================================
+  # IAM Role for Lambda Functions
+  # ============================================================================
+  
+  FinOpsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FinOpsAnalyzerLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: FinOpsAnalyzerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # Bedrock permissions
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: '*'
+              
+              # Cost Explorer permissions
+              - Effect: Allow
+                Action:
+                  - ce:GetCostAndUsage
+                  - ce:GetCostForecast
+                  - ce:GetReservationUtilization
+                  - ce:GetSavingsPlansCoverage
+                  - ce:GetSavingsPlansPurchaseRecommendation
+                  - ce:GetReservationPurchaseRecommendation
+                Resource: '*'
+              
+              # EC2 permissions
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ec2:DescribeVolumes
+                  - ec2:DescribeSnapshots
+                  - ec2:DescribeAddresses
+                  - ec2:DescribeSpotPriceHistory
+                  - ec2:DescribeRegions
+                Resource: '*'
+              
+              # RDS permissions
+              - Effect: Allow
+                Action:
+                  - rds:DescribeDBInstances
+                  - rds:DescribeDBClusters
+                Resource: '*'
+              
+              # ELB permissions
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeTargetHealth
+                Resource: '*'
+              
+              # Lambda permissions
+              - Effect: Allow
+                Action:
+                  - lambda:ListFunctions
+                  - lambda:GetFunction
+                Resource: '*'
+              
+              # S3 permissions
+              - Effect: Allow
+                Action:
+                  - s3:ListAllMyBuckets
+                  - s3:GetBucketLocation
+                  - s3:GetBucketTagging
+                  - s3:GetBucketVersioning
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - '*'
+                  - !Sub '${ReportBucket.Arn}/*'
+              
+              # CloudWatch permissions
+              - Effect: Allow
+                Action:
+                  - cloudwatch:GetMetricStatistics
+                  - cloudwatch:PutMetricData
+                Resource: '*'
+              
+              # DynamoDB permissions
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource: !GetAtt RecommendationsTable.Arn
+              
+              # SES permissions
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                  - ses:VerifyEmailAddress
+                Resource: '*'
+              
+              # SNS permissions
+              - Effect: Allow
+                Action:
+                  - sns:CreateTopic
+                  - sns:Subscribe
+                  - sns:Publish
+                Resource: '*'
+              
+              # Budgets permissions
+              - Effect: Allow
+                Action:
+                  - budgets:CreateBudget
+                  - budgets:ModifyBudget
+                  - budgets:DescribeBudget
+                Resource: '*'
+              
+              # Organizations permissions (for multi-account)
+              - Effect: Allow
+                Action:
+                  - organizations:ListAccounts
+                  - organizations:DescribeAccount
+                  - organizations:ListTagsForResource
+                  - organizations:ListParents
+                  - organizations:DescribeOrganizationalUnit
+                Resource: '*'
+              
+              # STS permissions (for cross-account)
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource: 'arn:aws:iam::*:role/FinOpsAnalyzerRole'
+  
+  # ============================================================================
+  # IAM Role for Step Functions
+  # ============================================================================
+  
+  StepFunctionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FinOpsStepFunctionsRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: StepFunctionsExecutionPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:finops-*'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource: !Sub '${ReportBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: '*'
+  
+  # ============================================================================
+  # Step Functions State Machine
+  # ============================================================================
+  
+  FinOpsStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: FinOpsAnalyzerWorkflow
+      RoleArn: !GetAtt StepFunctionsRole.Arn
+      DefinitionString: !Sub |
+        {
+          "Comment": "AWS FinOps Analyzer Orchestration",
+          "StartAt": "AnalyzeFinOps",
+          "States": {
+            "AnalyzeFinOps": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${MainLambdaFunction.Arn}",
+                "Payload.$": "$"
+              },
+              "End": true
+            }
+          }
+        }
+      LoggingConfiguration:
+        Level: ALL
+        IncludeExecutionData: true
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt StepFunctionsLogGroup.Arn
+      Tags:
+        - Key: Project
+          Value: FinOps
+  
+  StepFunctionsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/stepfunctions/finops-analyzer
+      RetentionInDays: 30
+  
+  # ============================================================================
+  # Main Lambda Function
+  # ============================================================================
+  
+  MainLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: finops-analyzer-main
+      Runtime: python3.11
+      Handler: src.interfaces.lambda_handler.handler
+      Role: !GetAtt FinOpsLambdaRole.Arn
+      Timeout: 900  # 15 minutes
+      MemorySize: 2048  # 2 GB
+      Environment:
+        Variables:
+          SENDER_EMAIL: !Ref SenderEmail
+          RECIPIENT_EMAIL: !Ref RecipientEmail
+          BEDROCK_MODEL_ID: !Ref BedrockModelId
+          HISTORICAL_DAYS: !Ref HistoricalDays
+          REPORT_BUCKET: !Ref ReportBucket
+          RECOMMENDATIONS_TABLE: !Ref RecommendationsTable
+          AWS_REGION: !Ref AWS::Region
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code via CI/CD or manual upload
+          def handler(event, context):
+              return {'statusCode': 200, 'body': 'Deploy code package'}
+      Tags:
+        - Key: Project
+          Value: FinOps
+  
+  # ============================================================================
+  # API Gateway REST API
+  # ============================================================================
+  
+  FinOpsApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: FinOps Analyzer API
+      Description: RESTful API for AWS FinOps Analyzer
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+  
+  FinOpsApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref FinOpsApi
+      ParentId: !GetAtt FinOpsApi.RootResourceId
+      PathPart: analyze
+  
+  FinOpsApiMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref FinOpsApi
+      ResourceId: !Ref FinOpsApiResource
+      HttpMethod: POST
+      AuthorizationType: AWS_IAM
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${MainLambdaFunction.Arn}/invocations'
+  
+  FinOpsApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: FinOpsApiMethod
+    Properties:
+      RestApiId: !Ref FinOpsApi
+      StageName: prod
+  
+  ApiGatewayInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MainLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${FinOpsApi}/*'
+  
+  # ============================================================================
+  # EventBridge Rule for Scheduled Execution
+  # ============================================================================
+  
+  ScheduledRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: finops-analyzer-daily
+      Description: Triggers FinOps analysis daily
+      ScheduleExpression: !Ref AnalysisSchedule
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt FinOpsStateMachine.Arn
+          RoleArn: !GetAtt EventBridgeRole.Arn
+          Id: FinOpsStateMachineTarget
+          Input: |
+            {
+              "regions": ["us-east-1"],
+              "period_days": 30
+            }
+  
+  EventBridgeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: StartStepFunctionsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: states:StartExecution
+                Resource: !GetAtt FinOpsStateMachine.Arn
+  
+  # ============================================================================
+  # CloudWatch Alarms
+  # ============================================================================
+  
+  LambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: FinOps-Lambda-Errors
+      AlarmDescription: Alert when Lambda function errors occur
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref MainLambdaFunction
+  
+  StepFunctionsFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: FinOps-StepFunctions-Failures
+      AlarmDescription: Alert when Step Functions executions fail
+      MetricName: ExecutionsFailed
+      Namespace: AWS/States
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: StateMachineArn
+          Value: !Ref FinOpsStateMachine
+
+Outputs:
+  ReportBucketName:
+    Description: S3 bucket for FinOps reports
+    Value: !Ref ReportBucket
+    Export:
+      Name: FinOps-ReportBucket
+  
+  RecommendationsTableName:
+    Description: DynamoDB table for recommendations
+    Value: !Ref RecommendationsTable
+    Export:
+      Name: FinOps-RecommendationsTable
+  
+  LambdaFunctionArn:
+    Description: ARN of main Lambda function
+    Value: !GetAtt MainLambdaFunction.Arn
+    Export:
+      Name: FinOps-LambdaArn
+  
+  StateMachineArn:
+    Description: ARN of Step Functions state machine
+    Value: !Ref FinOpsStateMachine
+    Export:
+      Name: FinOps-StateMachineArn
+  
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${FinOpsApi}.execute-api.${AWS::Region}.amazonaws.com/prod/analyze'
+    Export:
+      Name: FinOps-ApiEndpoint

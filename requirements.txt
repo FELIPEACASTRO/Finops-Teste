@@ -1,35 +1,28 @@
+# AWS Dependencies
 boto3>=1.26.0
 botocore>=1.29.0
 
-# Testing dependencies
-pytest>=7.0.0
-pytest-asyncio>=0.21.0
-pytest-cov>=4.0.0
-pytest-mock>=3.10.0
+# Web Framework
+flask>=2.3.0
+flask-cors>=4.0.0
 
-# Development dependencies
+# Testing Dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.1
+locust>=2.15.0
+mutmut>=2.4.0
+jsonschema>=4.19.0
+
+# Code Quality
 black>=23.0.0
 flake8>=6.0.0
 mypy>=1.0.0
 isort>=5.12.0
+ruff>=0.1.0
+pre-commit>=3.5.0
 
 # Documentation
 sphinx>=6.0.0
 sphinx-rtd-theme>=1.2.0
-black
-boto3
-flake8
-mypy
-pytest
-pytest-asyncio
-pytest-cov
-pytest-mock
-black
-boto3
-flake8
-pytest
-pytest-asyncio
-pytest-cov
-pytest-mock
-flask
-flask-cors

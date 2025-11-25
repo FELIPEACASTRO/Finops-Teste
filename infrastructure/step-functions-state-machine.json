@@ -1,0 +1,224 @@
+{
+  "Comment": "AWS FinOps Analyzer - Orchestration State Machine",
+  "StartAt": "CollectAWSResources",
+  "States": {
+    "CollectAWSResources": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${CollectorLambdaArn}",
+        "Payload": {
+          "regions.$": "$.regions",
+          "period_days.$": "$.period_days"
+        }
+      },
+      "ResultPath": "$.resources",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException", "Lambda.TooManyRequestsException"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "HandleCollectionError"
+        }
+      ],
+      "Next": "AnalyzeWithBedrock"
+    },
+    
+    "AnalyzeWithBedrock": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${BedrockAnalyzerLambdaArn}",
+        "Payload": {
+          "resources.$": "$.resources.Payload"
+        }
+      },
+      "ResultPath": "$.analysis",
+      "Retry": [
+        {
+          "ErrorEquals": ["Lambda.ServiceException"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 3,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "HandleAnalysisError"
+        }
+      ],
+      "Next": "ParallelEnrichment"
+    },
+    
+    "ParallelEnrichment": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "AnalyzeSavingsPlans",
+          "States": {
+            "AnalyzeSavingsPlans": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${SavingsPlansAnalyzerLambdaArn}",
+                "Payload": {
+                  "resources.$": "$.resources.Payload"
+                }
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "AnalyzeSpotOpportunities",
+          "States": {
+            "AnalyzeSpotOpportunities": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${SpotAnalyzerLambdaArn}",
+                "Payload": {
+                  "resources.$": "$.resources.Payload"
+                }
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "AnalyzeS3Storage",
+          "States": {
+            "AnalyzeS3Storage": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${S3AnalyzerLambdaArn}",
+                "Payload": {
+                  "resources.$": "$.resources.Payload"
+                }
+              },
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "AnalyzeDataTransfer",
+          "States": {
+            "AnalyzeDataTransfer": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "${DataTransferAnalyzerLambdaArn}",
+                "Payload": {
+                  "resources.$": "$.resources.Payload"
+                }
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.enrichment",
+      "Next": "GenerateReport"
+    },
+    
+    "GenerateReport": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${ReportGeneratorLambdaArn}",
+        "Payload": {
+          "analysis.$": "$.analysis.Payload",
+          "enrichment.$": "$.enrichment"
+        }
+      },
+      "ResultPath": "$.report",
+      "Next": "SaveToS3"
+    },
+    
+    "SaveToS3": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::aws-sdk:s3:putObject",
+      "Parameters": {
+        "Bucket": "${ReportBucketName}",
+        "Key.$": "States.Format('reports/{}.json', $$.Execution.StartTime)",
+        "Body.$": "$.report.Payload",
+        "ContentType": "application/json"
+      },
+      "ResultPath": "$.s3_result",
+      "Next": "SendEmailNotification"
+    },
+    
+    "SendEmailNotification": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${EmailSenderLambdaArn}",
+        "Payload": {
+          "report.$": "$.report.Payload",
+          "s3_key.$": "$.s3_result.Key"
+        }
+      },
+      "ResultPath": "$.email_result",
+      "Next": "CreateBudgetAlerts"
+    },
+    
+    "CreateBudgetAlerts": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${BudgetManagerLambdaArn}",
+        "Payload": {
+          "forecast.$": "$.analysis.Payload.forecast"
+        }
+      },
+      "ResultPath": "$.budget_result",
+      "Next": "Success"
+    },
+    
+    "Success": {
+      "Type": "Succeed"
+    },
+    
+    "HandleCollectionError": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${ErrorHandlerLambdaArn}",
+        "Payload": {
+          "error.$": "$.error",
+          "stage": "CollectAWSResources"
+        }
+      },
+      "Next": "Fail"
+    },
+    
+    "HandleAnalysisError": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "${ErrorHandlerLambdaArn}",
+        "Payload": {
+          "error.$": "$.error",
+          "stage": "AnalyzeWithBedrock"
+        }
+      },
+      "Next": "Fail"
+    },
+    
+    "Fail": {
+      "Type": "Fail",
+      "Error": "FinOpsAnalysisError",
+      "Cause": "FinOps analysis workflow failed"
+    }
+  }
+}
