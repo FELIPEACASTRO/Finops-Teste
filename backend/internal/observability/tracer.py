@@ -19,7 +19,11 @@ from contextlib import contextmanager
 from typing import Any, Dict, Optional, Union
 
 from opentelemetry import trace
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+try:
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+except ImportError:
+    # Fallback for development without Jaeger
+    JaegerExporter = None
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
 from opentelemetry.instrumentation.redis import RedisInstrumentor
@@ -89,7 +93,7 @@ class FinOpsTracer:
             trace.set_tracer_provider(tracer_provider)
 
             # Setup exporters
-            if self.config.jaeger_endpoint:
+            if self.config.jaeger_endpoint and JaegerExporter:
                 jaeger_exporter = JaegerExporter(
                     agent_host_name=self.config.jaeger_agent_host,
                     agent_port=self.config.jaeger_agent_port,
@@ -104,6 +108,8 @@ class FinOpsTracer:
 
                 tracer_provider.add_span_processor(span_processor)
                 self.logger.info(f"Jaeger tracing configured: {self.config.jaeger_endpoint}")
+            elif self.config.jaeger_endpoint and not JaegerExporter:
+                self.logger.warning("Jaeger endpoint configured but JaegerExporter not available")
 
             # Get tracer
             self._tracer = trace.get_tracer(__name__)
