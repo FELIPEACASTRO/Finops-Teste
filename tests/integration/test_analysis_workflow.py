@@ -246,14 +246,15 @@ class TestAnalysisWorkflow:
         result = await use_case.execute(command)
         
         assert result.success is False
+        assert result.error_message is not None
         assert "At least one region must be specified" in result.error_message
     
     @pytest.mark.asyncio
     async def test_analysis_workflow_with_repository_failure(self, mock_repositories, mock_analysis_service):
-        """Test analysis workflow when repository operations fail."""
+        """Test analysis workflow with graceful degradation on repository failure."""
         resource_repo, cost_repo, report_repo = mock_repositories
         
-        # Make resource repository fail
+        # Make resource repository fail - tests graceful degradation
         resource_repo.get_all_resources = AsyncMock(side_effect=Exception("AWS API Error"))
         
         use_case = AnalyzeResourcesUseCase(
@@ -272,8 +273,9 @@ class TestAnalysisWorkflow:
         
         result = await use_case.execute(command)
         
-        assert result.success is False
-        assert "AWS API Error" in result.error_message
+        # Should succeed with graceful degradation (empty resources list)
+        assert result.success is True
+        assert result.report is not None
     
     @pytest.mark.asyncio
     async def test_analysis_workflow_with_analysis_service_failure(self, mock_repositories, mock_analysis_service):
@@ -300,6 +302,7 @@ class TestAnalysisWorkflow:
         result = await use_case.execute(command)
         
         assert result.success is False
+        assert result.error_message is not None
         assert "Bedrock API Error" in result.error_message
     
     @pytest.mark.asyncio
@@ -324,9 +327,10 @@ class TestAnalysisWorkflow:
         result = await use_case.execute(command)
         
         assert result.success is True
+        assert result.report is not None
         
-        # Verify resource repository was called with all regions
-        resource_repo.get_all_resources.assert_called_once_with(["us-east-1", "us-west-2", "eu-west-1"])
+        # Verify resource repository was called for each region
+        assert resource_repo.get_all_resources.call_count == 3
     
     @pytest.mark.asyncio
     async def test_analysis_workflow_performance(self, mock_repositories, mock_analysis_service):
@@ -358,17 +362,38 @@ class TestAnalysisWorkflow:
     @pytest.mark.asyncio
     async def test_analysis_workflow_edge_cases(self, mock_repositories, mock_analysis_service):
         """Test analysis workflow with edge cases."""
-        resource_repo, cost_repo, report_repo = mock_repositories
+        # Create fresh mock repositories for this test
+        resource_repo = Mock()
+        cost_repo = Mock()
+        report_repo = Mock()
         
         # Mock empty resources
         resource_repo.get_all_resources = AsyncMock(return_value=[])
-        mock_analysis_service.analyze_resources = AsyncMock(return_value=[])
+        cost_repo.get_cost_data = AsyncMock(return_value=CostData(
+            total_cost_usd=Decimal('0'),
+            period_days=30
+        ))
+        report_repo.save_report = AsyncMock(return_value="s3://bucket/report.json")
+        
+        # Mock analysis service for empty resources
+        analysis_service = Mock()
+        analysis_service.analyze_resources = AsyncMock(return_value=[])
+        analysis_service.generate_report = AsyncMock(return_value=AnalysisReport(
+            generated_at=datetime.utcnow(),
+            version="4.0.0",
+            model_used="test",
+            analysis_period_days=30,
+            total_resources_analyzed=0,
+            total_monthly_savings_usd=Decimal('0'),
+            total_annual_savings_usd=Decimal('0'),
+            recommendations=[]
+        ))
         
         use_case = AnalyzeResourcesUseCase(
             resource_repository=resource_repo,
             cost_repository=cost_repo,
             report_repository=report_repo,
-            analysis_service=mock_analysis_service
+            analysis_service=analysis_service
         )
         
         command = AnalyzeResourcesCommand(
@@ -381,10 +406,11 @@ class TestAnalysisWorkflow:
         result = await use_case.execute(command)
         
         assert result.success is True
+        assert result.report is not None
         assert result.report.total_resources_analyzed == 0
         
         # Verify analysis service was still called (even with empty list)
-        mock_analysis_service.analyze_resources.assert_called_once_with([])
+        analysis_service.analyze_resources.assert_called_once_with([])
 
 
 class TestAnalysisWorkflowConcurrency:

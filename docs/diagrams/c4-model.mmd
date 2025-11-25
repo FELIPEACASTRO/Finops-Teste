@@ -1,0 +1,24 @@
+graph TD
+    subgraph SystemContext[System Context]
+        User[User] --> FinOpsAnalyzer[FinOps Analyzer]
+        FinOpsAnalyzer --> AWS[AWS Account]
+    end
+
+    subgraph ContainerDiagram[Container Diagram]
+        subgraph FinOpsAnalyzer
+            WebApp[WebApp] --> User
+            API[API] --> User
+            Orchestrator[Orchestrator] --> AnalyzerLambda[Analyzer Lambda]
+            AnalyzerLambda --> S3[S3 Bucket]
+            AnalyzerLambda --> DynamoDB[DynamoDB]
+        end
+    end
+
+    subgraph ComponentDiagram[Component Diagram]
+        subgraph AnalyzerLambda
+            Handler --> ApplicationService[App Service]
+            ApplicationService --> DomainServices[Domain Services]
+            DomainServices --> Infrastructure[Infra Services]
+            Infrastructure --> AWSSDK[AWS SDK]
+        end
+    end

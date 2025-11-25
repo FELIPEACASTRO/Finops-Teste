@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AWS FinOps Analyzer - Otimização inteligente de custos AWS com IA Amazon Bedrock">
+    <meta name="theme-color" content="#6366f1">
+    <title>AWS FinOps Analyzer | Otimização Inteligente de Custos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+    
+    <nav class="navbar" role="navigation" aria-label="Navegação principal">
+        <div class="nav-container">
+            <a href="#dashboard" class="nav-brand" aria-label="FinOps AI - Página inicial">
+                <div class="brand-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <span class="brand-text">FinOps<span class="brand-highlight">AI</span></span>
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="#dashboard" class="nav-link active" data-section="dashboard">Dashboard</a></li>
+                <li><a href="#services" class="nav-link" data-section="services">Serviços AWS</a></li>
+                <li><a href="#analysis" class="nav-link" data-section="analysis">Análise</a></li>
+                <li><a href="#architecture" class="nav-link" data-section="architecture">Arquitetura</a></li>
+            </ul>
+            
+            <button class="mobile-menu-btn" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-menu">
+                <span class="hamburger" aria-hidden="true"></span>
+            </button>
+            
+            <div class="nav-actions">
+                <button class="btn-demo" onclick="scrollToSection('analysis')" aria-label="Ir para demonstração interativa">
+                    <span>Demo Interativa</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div id="mobile-menu" class="mobile-menu" aria-label="Menu de navegação mobile">
+            <a href="#dashboard" class="mobile-link" data-section="dashboard">Dashboard</a>
+            <a href="#services" class="mobile-link" data-section="services">Serviços AWS</a>
+            <a href="#analysis" class="mobile-link" data-section="analysis">Análise</a>
+            <a href="#architecture" class="mobile-link" data-section="architecture">Arquitetura</a>
+        </div>
+    </nav>
+
+    <main id="main-content">
+        <section id="dashboard" class="section hero-section" aria-labelledby="hero-title">
+            <div class="hero-background" aria-hidden="true">
+                <div class="gradient-orb orb-1"></div>
+                <div class="gradient-orb orb-2"></div>
+                <div class="gradient-orb orb-3"></div>
+                <div class="grid-pattern"></div>
+            </div>
+            
+            <div class="hero-content">
+                <div class="hero-badge" role="status" aria-live="polite">
+                    <span class="pulse" aria-hidden="true"></span>
+                    <span>Powered by Amazon Bedrock</span>
+                </div>
+                
+                <h1 id="hero-title" class="hero-title">
+                    Otimize seus custos AWS com 
+                    <span class="gradient-text">Inteligência Artificial</span>
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Análise completa de <strong>268+ serviços AWS</strong> em tempo real. 
+                    Recomendações inteligentes com Claude 3 Sonnet para reduzir até 40% dos seus gastos.
+                </p>
+
+                <div class="stats-row" role="list" aria-label="Estatísticas do projeto">
+                    <div class="stat-card glass" role="listitem">
+                        <div class="stat-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                <path d="M3 9h18"/>
+                                <path d="M9 21V9"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="statServices">268+</span>
+                            <span class="stat-label">Serviços AWS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass" role="listitem">
+                        <div class="stat-icon blue" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="statCategories">24</span>
+                            <span class="stat-label">Categorias</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass" role="listitem">
+                        <div class="stat-icon green" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22,4 12,14.01 9,11.01"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number" id="statTests">386</span>
+                            <span class="stat-label">Testes Passando</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card glass" role="listitem">
+                        <div class="stat-icon purple" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">42%</span>
+                            <span class="stat-label">Cobertura</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass highlight" role="listitem">
+                        <div class="stat-icon gold" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-number">Ready</span>
+                            <span class="stat-label">Production</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="section features-section" aria-labelledby="features-title">
+            <div class="section-container">
+                <header class="section-header">
+                    <span class="section-tag">Recursos</span>
+                    <h2 id="features-title" class="section-title">Tecnologia de Ponta para FinOps</h2>
+                    <p class="section-subtitle">Combinamos as melhores práticas de arquitetura com IA avançada</p>
+                </header>
+
+                <div class="features-grid" role="list">
+                    <article class="feature-card" role="listitem">
+                        <div class="feature-icon-wrapper" aria-hidden="true">
+                            <div class="feature-glow"></div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/>
+                                <path d="M6 10v4a6 6 0 0 0 12 0v-4"/>
+                                <path d="M12 18v4"/>
+                                <path d="M8 22h8"/>
+                            </svg>
+                        </div>
+                        <h3>Amazon Bedrock AI</h3>
+                        <p>Claude 3 Sonnet analisa seus recursos e gera recomendações personalizadas com precisão de especialista</p>
+                    </article>
+
+                    <article class="feature-card" role="listitem">
+                        <div class="feature-icon-wrapper blue" aria-hidden="true">
+                            <div class="feature-glow blue"></div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                        </div>
+                        <h3>Clean Architecture</h3>
+                        <p>Código modular com separação clara de camadas: Domain, Application, Infrastructure</p>
+                    </article>
+
+                    <article class="feature-card" role="listitem">
+                        <div class="feature-icon-wrapper green" aria-hidden="true">
+                            <div class="feature-glow green"></div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="M9 12l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <h3>Resiliência Total</h3>
+                        <p>Circuit Breaker, Retry com Backoff Exponencial e Cache inteligente para alta disponibilidade</p>
+                    </article>
+
+                    <article class="feature-card" role="listitem">
+                        <div class="feature-icon-wrapper purple" aria-hidden="true">
+                            <div class="feature-glow purple"></div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                <polyline points="3.27,6.96 12,12.01 20.73,6.96"/>
+                                <line x1="12" y1="22.08" x2="12" y2="12"/>
+                            </svg>
+                        </div>
+                        <h3>Deploy Serverless</h3>
+                        <p>Pronto para AWS Lambda com Step Functions para operações em larga escala</p>
+                    </article>
+
+                    <article class="feature-card" role="listitem">
+                        <div class="feature-icon-wrapper orange" aria-hidden="true">
+                            <div class="feature-glow orange"></div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M3 3v18h18"/>
+                                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                            </svg>
+                        </div>
+                        <h3>CloudWatch Metrics</h3>
+                        <p>Monitoramento em tempo real de análises, economias e performance do sistema</p>
+                    </article>
+
+                    <article class="feature-card" role="listitem">
+                        <div class="feature-icon-wrapper cyan" aria-hidden="true">
+                            <div class="feature-glow cyan"></div>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                <path d="M8 7h8"/>
+                                <path d="M8 11h6"/>
+                            </svg>
+                        </div>
+                        <h3>Relatórios S3</h3>
+                        <p>Análises salvas automaticamente no S3 com histórico completo e versionamento</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="analysis" class="section analysis-section" aria-labelledby="analysis-title">
+            <div class="section-container">
+                <header class="section-header">
+                    <span class="section-tag">Demo Interativa</span>
+                    <h2 id="analysis-title" class="section-title">Veja o Poder da Análise</h2>
+                    <p class="section-subtitle">Simulação de análise de custos com recomendações reais</p>
+                </header>
+
+                <div class="analysis-panel glass">
+                    <div class="analysis-header">
+                        <div class="analysis-info">
+                            <h3 id="analysis-panel-title">Análise de Custos AWS</h3>
+                            <p id="analysis-panel-desc">Clique no botão para gerar uma análise demonstrativa</p>
+                        </div>
+                        <button class="btn-analyze" id="btnAnalyze" onclick="runDemoAnalysis()" aria-describedby="analysis-panel-desc">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <polygon points="5,3 19,12 5,21"/>
+                            </svg>
+                            <span>Executar Análise</span>
+                        </button>
+                    </div>
+
+                    <div class="analysis-results" id="analysisResults" role="region" aria-live="polite" aria-atomic="true">
+                        <div class="analysis-placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="M21 21l-4.35-4.35"/>
+                                <path d="M11 8v6"/>
+                                <path d="M8 11h6"/>
+                            </svg>
+                            <p>Clique em "Executar Análise" para ver os resultados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="section architecture-section" aria-labelledby="architecture-title">
+            <div class="section-container">
+                <header class="section-header">
+                    <span class="section-tag">Arquitetura</span>
+                    <h2 id="architecture-title" class="section-title">Clean Architecture + DDD</h2>
+                    <p class="section-subtitle">Design robusto para máxima testabilidade e manutenção</p>
+                </header>
+
+                <div class="architecture-diagram" role="img" aria-label="Diagrama da arquitetura em camadas: Interfaces, Application, Domain e Infrastructure">
+                    <div class="arch-layer layer-interfaces">
+                        <div class="layer-label">Interfaces</div>
+                        <div class="layer-content">
+                            <span class="layer-item">Lambda Handler</span>
+                            <span class="layer-item">CLI</span>
+                            <span class="layer-item">Web API</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-connector" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14"/>
+                            <path d="M19 12l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="arch-layer layer-application">
+                        <div class="layer-label">Application</div>
+                        <div class="layer-content">
+                            <span class="layer-item">Use Cases</span>
+                            <span class="layer-item">DTOs</span>
+                            <span class="layer-item">Commands</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-connector" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14"/>
+                            <path d="M19 12l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="arch-layer layer-domain">
+                        <div class="layer-label">Domain</div>
+                        <div class="layer-content">
+                            <span class="layer-item">Entities</span>
+                            <span class="layer-item">Services</span>
+                            <span class="layer-item">Repositories</span>
+                        </div>
+                    </div>
+                    
+                    <div class="arch-connector" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14"/>
+                            <path d="M19 12l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="arch-layer layer-infrastructure">
+                        <div class="layer-label">Infrastructure</div>
+                        <div class="layer-content">
+                            <span class="layer-item">AWS SDK</span>
+                            <span class="layer-item">Bedrock AI</span>
+                            <span class="layer-item">Resilience</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Recomendação Detalhada -->
+    <div id="recommendationModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-backdrop" onclick="closeRecommendationModal()"></div>
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Detalhes da Recomendação</h2>
+                <button class="modal-close" onclick="closeRecommendationModal()" aria-label="Fechar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-body" id="modalBody">
+                <!-- Conteúdo preenchido dinamicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
